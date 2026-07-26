@@ -1,0 +1,85 @@
+server:
+  port: 8081
+  tomcat:
+    max-swallow-size: -1
+    max-http-form-post-size: 50MB
+
+spring:
+  application:
+    name: service-business
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/smart_nas?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 200MB
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+      config:
+        import-check:
+          enabled: false
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+jwt:
+  secret: smart-nas-secret-key-must-be-at-least-32-bytes-long!!
+  expiration: 86400000
+
+photo:
+  storage:
+    base-path: D:\\test\\photos
+    thumbnail-path: D:\\test\\thumbnails
+    video-path: D:\\test\\videos
+
+# AI 服务配置
+ai:
+  service-url: http://127.0.0.1:8000
+  config-dir: D:\\test
+  chat-image-dir: D:\\test\\chat_images
+  workspace-dir: D:\\test\\workspace
+
+# 文件存储配置
+file:
+  storage-dir: D:\\test\\files
+
+# 图书存储配置
+book:
+  storage-dir: D:\\test\\books
+
+# WebDAV 配置
+webdav:
+  username: admin
+  password: admin
+
+amap:
+  api-key: YOUR_AMAP_API_KEY_HERE
+
+spring.servlet.multipart.max-file-size: 200MB
+spring.servlet.multipart.max-request-size: 500MB
+
+logging:
+  level:
+    yzh.stock.business: DEBUG

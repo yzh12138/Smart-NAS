@@ -1,0 +1,65 @@
+server:
+  port: 8080
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 500MB
+
+spring:
+  application:
+    name: smart-nas-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+      config:
+        import-check:
+          enabled: false
+    gateway:
+      routes:
+        - id: service-business
+          uri: lb://service-business
+          predicates:
+            - Path=/api/auth/**,/api/system/**,/api/photo/**,/api/tag/**,/api/recycle/**,/api/family/**,/api/friend/**,/api/ai-model/**,/api/ai-prompt/**,/api/log/**,/api/duplicate/**,/api/file/**,/api/book/**,/api/ai-chat/**
+          filters:
+            - StripPrefix=0
+          metadata:
+            response-timeout: 300000
+            connect-timeout: 30000
+        - id: service-ai
+          uri: http://127.0.0.1:8000
+          predicates:
+            - Path=/api/ai/**
+          filters:
+            - StripPrefix=0
+          metadata:
+            response-timeout: 300000
+            connect-timeout: 30000
+      httpclient:
+        response-timeout: 300000
+        connect-timeout: 30000
+        pool:
+          type: elastic
+          max-connections: 500
+          acquire-timeout: 5000
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+
+jwt:
+  secret: smart-nas-secret-key-must-be-at-least-32-bytes-long!!
+  expiration: 86400000
+
+logging:
+  level:
+    yzh.stock.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG

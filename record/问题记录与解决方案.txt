@@ -1,0 +1,121 @@
+Smart-NAS 问题记录与解决方案
+==============================
+更新日期：2026-07-25
+
+========================================
+一、新增功能
+========================================
+
+1. 悬浮助手新增开启新聊天按键
+   状态：已修复
+   解决方案：在FloatingAssistant.vue的chat-header中添加"新聊天"按钮，点击后调用createConversation创建新对话并清空消息列表。
+
+2. 仪表盘城市分布点击跳转
+   状态：已修复
+   解决方案：在ECharts饼图初始化时添加chart.on('click')事件监听，点击城市后跳转到/photo/overview?city=城市名。Overview.vue在onMounted时读取route.query.city并设为搜索关键词。
+
+3. 权限管理改名为目录管理
+   状态：已修复
+   解决方案：修改zh.json和en.json中的menu.permissions翻译值。
+
+4. 系统设置添加小米MiMo大模型
+   状态：已修复
+   解决方案：在settings页面AI模型区域添加"添加小米MiMo"按钮，点击后自动填充MiMo的API地址和模型ID，提供API Key输入框，保存到ai_model_config表。
+
+5. 操作日志记录
+   状态：已修复
+   解决方案：在PhotoController和AuthController中注入LogService，在关键操作（上传、删除、登录、登出）时调用logService.log()记录详细日志。
+
+========================================
+二、Bug修复
+========================================
+
+1. 手机端仪表盘图标显示不完全
+   状态：已修复
+   解决方案：使用el-col的xs/sm/md响应式断点，手机端2列显示，桌面端4列显示。添加CSS媒体查询适配手机端。
+
+2. 手机端城市分布显示不完全
+   状态：已修复
+   解决方案：使用el-col的xs/sm/md响应式断点，手机端全宽显示。
+
+3. 手机端照片回忆显示不完全
+   状态：已修复
+   解决方案：响应式布局已通过el-col断点处理。
+
+4. 手机端系统设置空白页
+   状态：已修复
+   解决方案：添加响应式CSS，设置label-width:auto，手机端label浮动显示。
+
+5. 手机端悬浮助手消息回复问题
+   状态：已修复
+   解决方案：增加对话创建校验和错误处理，确保conversation存在后再发消息。
+
+6. 电脑端悬浮助手模型选择不了
+   状态：已修复
+   解决方案：AI chat页面缺少request导入导致handleModelChange报错，已添加import request from '../../utils/request'。
+
+7. 上传视频显示"成功上传1张照片"
+   状态：已修复
+   解决方案：上传成功后检查文件类型，如果有视频文件则显示"成功上传X个视频"。
+
+8. 个人资料头像不显示
+   状态：已修复
+   解决方案：保存后清除avatarPreview并调用userStore.getUserInfo()刷新用户信息。
+
+9. 手机端上传照片EOFException
+   状态：需进一步排查
+   原因分析：java.io.EOFException通常是请求体不完整或超时导致。手机端网络不稳定或文件较大时容易出现。
+   解决方案：已增加网关超时到300秒，前端上传超时到300秒。如仍有问题，建议手机端上传较小文件或使用WiFi稳定网络。
+
+========================================
+三、检查项
+========================================
+
+1. 家庭共享页面小窗口
+   状态：正常
+   说明：家庭名字右边的小窗口是邀请码显示（familyCode），用于其他用户通过邀请码加入家庭。这是正常功能。
+
+2. 悬浮助手拖动后不打开小窗口
+   状态：已修复
+   解决方案：添加hasDragged标记，只有在没有拖动的情况下点击才打开聊天窗口。
+
+3. AI对话发送消息没有收到回复
+   状态：已修复
+   解决方案：后端AiChatController的send方法添加try-catch，返回错误信息而非抛出异常。前端增加错误处理。
+
+4. 用户管理和角色管理合并
+   状态：已完成
+   说明：已合并为RoleManage.vue，两个路由指向同一页面。保留两个菜单入口但内容相同。
+
+========================================
+四、技术说明
+========================================
+
+1. 网关超时配置
+   文件：gateway/src/main/resources/application.yml
+   修改：添加response-timeout: 300s和connect-timeout: 30000
+
+2. 前端上传超时
+   文件：web-vue/src/api/index.js
+   修改：uploadPhotos超时从120000ms增加到300000ms
+
+3. 回收站外键约束
+   文件：service-business/.../RecycleService.java
+   修改：永久删除前先清理photo_comment、family_media关联数据
+
+4. 注册用户审批
+   文件：service-business/.../SysUserService.java
+   修改：createUser不再强制覆盖status=1，保留注册时设置的status=0
+
+5. AI对话提示词
+   文件：service-business/.../AiChatService.java
+   修改：sendMessage每次重新读取用户最新提示词并更新到对话记录
+
+6. 标签删除检查
+   文件：service-business/.../TagService.java
+   修改：删除前检查关联照片数量，有照片时禁止删除
+
+7. 手机端访问配置
+   文件：web-vue/vite.config.js
+   修改：添加host: '0.0.0.0'允许局域网访问
+   访问地址：http://电脑IP:5173

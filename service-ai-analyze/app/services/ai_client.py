@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
+# 创建共享的 transport，避免连接池问题
+_async_transport = httpx.AsyncHTTPTransport(retries=0)
+
 
 async def chat_completion(messages: list, model: str = "qwen2.5:7b", api_url: str = None, model_type: str = "ollama", api_key: str = None) -> str:
     """通用聊天补全接口，支持 Ollama 和 OpenAI 兼容 API"""
@@ -34,7 +37,7 @@ async def chat_completion(messages: list, model: str = "qwen2.5:7b", api_url: st
             headers["Authorization"] = f"Bearer {api_key}"
 
     logger.info(f"[chat_completion] Calling: {url}, model={model}, model_type={model_type}, messages={len(messages)}")
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    async with httpx.AsyncClient(timeout=120.0, transport=_async_transport) as client:
         response = await client.post(url, json=body, headers=headers)
         if response.status_code != 200:
             logger.error(f"[chat_completion] API returned {response.status_code}: {response.text}")
@@ -76,7 +79,7 @@ async def chat_completion_with_images(messages: list, model: str = "qwen2.5vl:7b
     }
 
     logger.info(f"[chat_completion_with_images] Calling: {url}, model={model}, messages={len(processed_messages)}")
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    async with httpx.AsyncClient(timeout=120.0, transport=_async_transport) as client:
         response = await client.post(url, json=body)
         if response.status_code != 200:
             logger.error(f"[chat_completion_with_images] Ollama returned {response.status_code}: {response.text}")
@@ -123,7 +126,7 @@ async def analyze_image(image_path: str, prompt: str = None) -> dict:
 - 如果没有水印或无法识别经纬度，watermark_lat 和 watermark_lng 设为 null
 - 只返回 JSON，不要其他文字"""
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    async with httpx.AsyncClient(timeout=120.0, transport=_async_transport) as client:
         response = await client.post(
             f"{OLLAMA_BASE_URL}/api/generate",
             json={

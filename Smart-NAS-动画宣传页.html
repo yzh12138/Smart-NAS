@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-NAS - 本地智能照片管理系统</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-dark: #0a0e1a;
+    --bg-card: #111827;
+    --accent-blue: #00d2ff;
+    --accent-purple: #7b2fff;
+    --accent-pink: #ff6b9d;
+    --accent-green: #00e696;
+    --accent-orange: #ff9f43;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  /* ── Particle Canvas ── */
+  #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+  /* ── Navigation ── */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 100;
+    background: rgba(10, 14, 26, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0 2rem; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+  .nav-links a:hover { color: var(--accent-blue); }
+
+  /* ── Sections ── */
+  section { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; }
+  .container { max-width: 1200px; width: 100%; margin: 0 auto; }
+
+  /* ── Hero ── */
+  .hero { text-align: center; padding-top: 100px; }
+  .hero-badge {
+    display: inline-block; padding: 0.4rem 1.2rem; border-radius: 50px;
+    background: rgba(123, 47, 255, 0.15); border: 1px solid rgba(123, 47, 255, 0.3);
+    color: var(--accent-purple); font-size: 0.85rem; font-weight: 500;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.8s ease-out;
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900;
+    line-height: 1.1; margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: fadeInUp 0.8s ease-out 0.2s backwards;
+  }
+  .hero p {
+    font-size: clamp(1rem, 2vw, 1.35rem); color: var(--text-secondary);
+    max-width: 700px; margin: 0 auto 2.5rem; line-height: 1.7;
+    animation: fadeInUp 0.8s ease-out 0.4s backwards;
+  }
+  .hero-buttons {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.6s backwards;
+  }
+  .btn {
+    padding: 0.8rem 2rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.3s; border: none; text-decoration: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    color: white; box-shadow: 0 4px 20px rgba(0, 210, 255, 0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 210, 255, 0.4); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.05); color: var(--text-primary);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── Tech Stack Bar ── */
+  .tech-bar {
+    display: flex; gap: 1.5rem; justify-content: center; margin-top: 3rem; flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.8s backwards;
+  }
+  .tech-item {
+    padding: 0.5rem 1.2rem; border-radius: 8px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.85rem; color: var(--text-secondary);
+    transition: all 0.3s;
+  }
+  .tech-item:hover { border-color: var(--accent-blue); color: var(--accent-blue); transform: translateY(-2px); }
+
+  /* ── Floating Cards Animation ── */
+  .float-cards {
+    position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; overflow: hidden;
+  }
+  .float-card {
+    position: absolute; padding: 1rem 1.5rem; border-radius: 12px;
+    background: rgba(17, 24, 39, 0.8); border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px); font-size: 0.85rem;
+    animation: float 6s ease-in-out infinite;
+  }
+  .float-card:nth-child(1) { top: 15%; left: 5%; animation-delay: 0s; }
+  .float-card:nth-child(2) { top: 25%; right: 8%; animation-delay: 1s; }
+  .float-card:nth-child(3) { bottom: 20%; left: 10%; animation-delay: 2s; }
+  .float-card:nth-child(4) { bottom: 30%; right: 5%; animation-delay: 3s; }
+
+  /* ── Features Grid ── */
+  .section-title {
+    text-align: center; margin-bottom: 4rem;
+  }
+  .section-title h2 {
+    font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; margin-bottom: 1rem;
+  }
+  .section-title p { color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+  .section-title .line {
+    width: 60px; height: 4px; margin: 1.5rem auto 0;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 2px;
+  }
+
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  .feature-card {
+    padding: 2rem; border-radius: 16px;
+    background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.4s; position: relative; overflow: hidden;
+  }
+  .feature-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .feature-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.1); }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .feature-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .feature-card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+
+  /* ── Architecture ── */
+  .arch-diagram {
+    display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: 0 auto;
+  }
+  .arch-layer {
+    display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;
+    border-radius: 12px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s;
+  }
+  .arch-layer:hover { transform: scale(1.02); border-color: rgba(255,255,255,0.1); }
+  .arch-label {
+    min-width: 100px; padding: 0.4rem 0.8rem; border-radius: 8px;
+    font-weight: 700; font-size: 0.85rem; text-align: center;
+  }
+  .arch-items { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+  .arch-item {
+    padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.8rem;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  }
+  .arch-arrow { text-align: center; color: var(--text-secondary); font-size: 1.2rem; }
+
+  /* ── Stats ── */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem; margin-top: 3rem;
+  }
+  .stat-card {
+    text-align: center; padding: 2rem; border-radius: 16px;
+    background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s;
+  }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-number {
+    font-size: 3rem; font-weight: 900;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .stat-label { color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem; }
+
+  /* ── AI Section ── */
+  .ai-features { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+  .ai-list { display: flex; flex-direction: column; gap: 1rem; }
+  .ai-item {
+    display: flex; gap: 1rem; align-items: flex-start; padding: 1rem;
+    border-radius: 12px; background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s;
+  }
+  .ai-item:hover { background: rgba(255,255,255,0.04); transform: translateX(5px); }
+  .ai-item-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .ai-item-text h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .ai-item-text p { color: var(--text-secondary); font-size: 0.85rem; }
+
+  .ai-visual {
+    position: relative; padding: 2rem; border-radius: 20px;
+    background: linear-gradient(135deg, rgba(123,47,255,0.1), rgba(0,210,255,0.1));
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .ai-chat-mock {
+    display: flex; flex-direction: column; gap: 0.8rem;
+  }
+  .chat-msg {
+    padding: 0.8rem 1.2rem; border-radius: 12px; max-width: 80%;
+    font-size: 0.9rem; line-height: 1.5;
+    animation: chatIn 0.5s ease-out backwards;
+  }
+  .chat-user {
+    align-self: flex-end; background: var(--accent-purple);
+    color: white; animation-delay: 0.5s;
+  }
+  .chat-ai {
+    align-self: flex-start; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1); animation-delay: 1s;
+  }
+  .chat-typing {
+    align-self: flex-start; padding: 0.8rem 1.2rem; border-radius: 12px;
+    background: rgba(255,255,255,0.05); animation-delay: 1.5s;
+  }
+  .typing-dots span {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-secondary); margin: 0 2px;
+    animation: typing 1.4s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  /* ── Map Section ── */
+  .map-demo {
+    position: relative; padding: 2rem; border-radius: 20px;
+    background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+    min-height: 400px; overflow: hidden;
+  }
+  .map-dots { position: relative; width: 100%; height: 350px; }
+  .map-dot {
+    position: absolute; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent-pink); cursor: pointer;
+    animation: pulse 2s infinite;
+  }
+  .map-dot::after {
+    content: attr(data-city); position: absolute; bottom: 100%; left: 50%;
+    transform: translateX(-50%); padding: 0.3rem 0.6rem; border-radius: 6px;
+    background: rgba(0,0,0,0.8); color: white; font-size: 0.75rem;
+    white-space: nowrap; opacity: 0; transition: opacity 0.3s;
+  }
+  .map-dot:hover::after { opacity: 1; }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+  }
+  .timeline-item {
+    position: relative; padding: 1.5rem 0 1.5rem 2rem;
+    animation: fadeInLeft 0.6s ease-out backwards;
+  }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -2rem; top: 1.8rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent-blue); border: 3px solid var(--bg-dark);
+  }
+  .timeline-item h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .timeline-item p { color: var(--text-secondary); font-size: 0.85rem; }
+
+  /* ── Footer ── */
+  footer {
+    position: relative; z-index: 1; text-align: center;
+    padding: 3rem 2rem; border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  footer p { color: var(--text-secondary); font-size: 0.85rem; }
+
+  /* ── Animations ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(2deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 157, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(255, 107, 157, 0); }
+  }
+  @keyframes chatIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+  }
+
+  /* ── Scroll Animations ── */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .ai-features { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    section { padding: 3rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Particles -->
+<canvas id="particles"></canvas>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-logo">🐕 Smart-NAS</div>
+  <div class="nav-links">
+    <a href="#features">功能</a>
+    <a href="#ai">AI 能力</a>
+    <a href="#architecture">架构</a>
+    <a href="#map">地图回忆</a>
+    <a href="#stats">数据</a>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="float-cards">
+    <div class="float-card">📸 照片已自动分类</div>
+    <div class="float-card">🤖 AI 识别：西湖风景</div>
+    <div class="float-card">🗺️ 新增 3 个城市标记</div>
+    <div class="float-card">👨‍👩‍👧‍👦 家庭共享更新</div>
+  </div>
+  <div class="container">
+    <div class="hero-badge">🚀 AI 驱动的全栈项目</div>
+    <h1>Smart-NAS</h1>
+    <p>本地智能照片管理系统 — 支持 AI 自动标签、地图回忆浏览、家庭共享、图书管理，通过本地 Ollama 大模型实现隐私安全的智能对话</p>
+    <div class="hero-buttons">
+      <a href="#features" class="btn btn-primary">探索功能 ✨</a>
+      <a href="#architecture" class="btn btn-secondary">查看架构</a>
+    </div>
+    <div class="tech-bar">
+      <div class="tech-item">Java 17</div>
+      <div class="tech-item">Spring Boot 3.2</div>
+      <div class="tech-item">Vue 3</div>
+      <div class="tech-item">Python FastAPI</div>
+      <div class="tech-item">Ollama</div>
+      <div class="tech-item">Qwen2.5</div>
+      <div class="tech-item">MySQL 8</div>
+      <div class="tech-item">Redis 7</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2>核心功能</h2>
+      <p>16 大功能模块，覆盖照片管理、AI 分析、家庭协作的完整解决方案</p>
+      <div class="line"></div>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">📸</div>
+        <h3>智能照片管理</h3>
+        <p>上传、标签、搜索、回收站，支持批量操作和 AI 自动标签推荐</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🎬</div>
+        <h3>视频管理</h3>
+        <p>视频上传、在线播放、下载，支持批量删除和家庭共享</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🗺️</div>
+        <h3>地图回忆</h3>
+        <p>ECharts 中国地图，GPS 定位照片，城市级浏览，时间线视图</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🤖</div>
+        <h3>AI 智能对话</h3>
+        <p>多轮对话、模型切换、提示词管理、记忆系统，支持多种大模型</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">👨‍👩‍👧‍👦</div>
+        <h3>家庭共享</h3>
+        <p>创建家庭、邀请成员、照片/视频/文件共享，权限精细管理</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📁</div>
+        <h3>文件存储</h3>
+        <p>任意文件上传下载，分类管理，支持全格式文件的增删改查</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📚</div>
+        <h3>图书管理</h3>
+        <p>电子书上传阅读，公共书库 + 个人书架，支持 EPUB/PDF 在线阅读</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔐</div>
+        <h3>RBAC 权限</h3>
+        <p>用户-角色-权限三级管理，目录/菜单/按钮精细控制</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI Section -->
+<section id="ai">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2>AI 能力</h2>
+      <p>本地运行大模型，数据不出家门，隐私安全有保障</p>
+      <div class="line"></div>
+    </div>
+    <div class="ai-features">
+      <div class="ai-list reveal">
+        <div class="ai-item">
+          <div class="ai-item-icon">🔍</div>
+          <div class="ai-item-text">
+            <h4>图片智能分析</h4>
+            <p>Qwen2.5vl 视觉模型自动识别场景、人物、地点，生成标签</p>
+          </div>
+        </div>
+        <div class="ai-item">
+          <div class="ai-item-icon">💬</div>
+          <div class="ai-item-text">
+            <h4>AI 智能对话</h4>
+            <p>多轮对话、上下文记忆，支持切换 Ollama/OpenAI/MIMO 等模型</p>
+          </div>
+        </div>
+        <div class="ai-item">
+          <div class="ai-item-icon">🏷️</div>
+          <div class="ai-item-text">
+            <h4>自动标签推荐</h4>
+            <p>上传照片自动分析，用户可选择采纳 AI 推荐的标签</p>
+          </div>
+        </div>
+        <div class="ai-item">
+          <div class="ai-item-icon">👤</div>
+          <div class="ai-item-text">
+            <h4>人脸聚类</h4>
+            <p>自动识别照片中的人脸，归集同一人物的所有照片</p>
+          </div>
+        </div>
+        <div class="ai-item">
+          <div class="ai-item-icon">🎨</div>
+          <div class="ai-item-text">
+            <h4>场景打标</h4>
+            <p>聚会、旅行、证件、票据，AI 自动分类场景</p>
+          </div>
+        </div>
+      </div>
+      <div class="ai-visual reveal">
+        <div class="ai-chat-mock">
+          <div class="chat-msg chat-user">帮我找去年在杭州拍的照片</div>
+          <div class="chat-msg chat-ai">好的，我找到了 23 张去年在杭州拍摄的照片，包括西湖风景 12 张、灵隐寺 5 张、河坊街 6 张。需要我按地点分类展示吗？</div>
+          <div class="chat-msg chat-user">好的，按地点分类看看</div>
+          <div class="chat-typing">
+            <div class="typing-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture Section -->
+<section id="architecture">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2>系统架构</h2>
+      <p>微服务架构，前后端分离，AI 服务独立部署</p>
+      <div class="line"></div>
+    </div>
+    <div class="arch-diagram reveal">
+      <div class="arch-layer">
+        <div class="arch-label" style="background: rgba(0,230,150,0.15); color: var(--accent-green);">用户层</div>
+        <div class="arch-items">
+          <div class="arch-item">PC 浏览器</div>
+          <div class="arch-item">手机浏览器</div>
+          <div class="arch-item">移动端</div>
+        </div>
+      </div>
+      <div class="arch-arrow">↕</div>
+      <div class="arch-layer">
+        <div class="arch-label" style="background: rgba(0,210,255,0.15); color: var(--accent-blue);">前端层</div>
+        <div class="arch-items">
+          <div class="arch-item">Vue 3 + Vite</div>
+          <div class="arch-item">Element Plus</div>
+          <div class="arch-item">ECharts</div>
+          <div class="arch-item">i18n 国际化</div>
+        </div>
+      </div>
+      <div class="arch-arrow">↕</div>
+      <div class="arch-layer">
+        <div class="arch-label" style="background: rgba(123,47,255,0.15); color: var(--accent-purple);">网关层</div>
+        <div class="arch-items">
+          <div class="arch-item">Spring Cloud Gateway</div>
+          <div class="arch-item">JWT 鉴权</div>
+          <div class="arch-item">路由转发</div>
+          <div class="arch-item">跨域处理</div>
+        </div>
+      </div>
+      <div class="arch-arrow">↕</div>
+      <div class="arch-layer">
+        <div class="arch-label" style="background: rgba(255,159,67,0.15); color: var(--accent-orange);">服务层</div>
+        <div class="arch-items">
+          <div class="arch-item">Business Service (8081)</div>
+          <div class="arch-item">AI Service (8000)</div>
+        </div>
+      </div>
+      <div class="arch-arrow">↕</div>
+      <div class="arch-layer">
+        <div class="arch-label" style="background: rgba(255,107,157,0.15); color: var(--accent-pink);">数据层</div>
+        <div class="arch-items">
+          <div class="arch-item">MySQL 8.0</div>
+          <div class="arch-item">Redis 7</div>
+          <div class="arch-item">Ollama</div>
+          <div class="arch-item">本地文件系统</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Map Section -->
+<section id="map">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2>地图回忆</h2>
+      <p>照片不只是文件，更是记忆的坐标</p>
+      <div class="line"></div>
+    </div>
+    <div class="map-demo reveal">
+      <div class="map-dots">
+        <div class="map-dot" data-city="北京" style="top:20%;left:65%;animation-delay:0s"></div>
+        <div class="map-dot" data-city="上海" style="top:45%;left:78%;animation-delay:0.3s"></div>
+        <div class="map-dot" data-city="杭州" style="top:50%;left:72%;animation-delay:0.6s"></div>
+        <div class="map-dot" data-city="成都" style="top:55%;left:40%;animation-delay:0.9s"></div>
+        <div class="map-dot" data-city="广州" style="top:72%;left:62%;animation-delay:1.2s"></div>
+        <div class="map-dot" data-city="深圳" style="top:73%;left:64%;animation-delay:1.5s"></div>
+        <div class="map-dot" data-city="西安" style="top:42%;left:48%;animation-delay:1.8s"></div>
+        <div class="map-dot" data-city="重庆" style="top:55%;left:45%;animation-delay:2.1s"></div>
+        <div class="map-dot" data-city="武汉" style="top:52%;left:58%;animation-delay:2.4s"></div>
+        <div class="map-dot" data-city="南京" style="top:45%;left:68%;animation-delay:2.7s"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section id="stats">
+  <div class="container">
+    <div class="section-title reveal">
+      <h2>项目数据</h2>
+      <p>与 MIMO Code 从零构建的全栈项目</p>
+      <div class="line"></div>
+    </div>
+    <div class="stats-grid reveal">
+      <div class="stat-card">
+        <div class="stat-number" data-target="20">0</div>
+        <div class="stat-label">需求迭代轮次</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" data-target="100">0</div>
+        <div class="stat-label">功能点实现</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" data-target="17">0</div>
+        <div class="stat-label">前端页面组件</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" data-target="25">0</div>
+        <div class="stat-label">数据库表</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" data-target="14">0</div>
+        <div class="stat-label">REST 控制器</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" data-target="4">0</div>
+        <div class="stat-label">微服务模块</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Timeline Section -->
+<section>
+  <div class="container">
+    <div class="section-title reveal">
+      <h2>开发历程</h2>
+      <p>与 MIMO Code 一起，从需求到成品的旅程</p>
+      <div class="line"></div>
+    </div>
+    <div class="timeline reveal">
+      <div class="timeline-item" style="animation-delay:0.1s">
+        <h4>🎯 需求规划</h4>
+        <p>确定技术栈：Java + Python + Vue 3 + Ollama，规划微服务架构</p>
+      </div>
+      <div class="timeline-item" style="animation-delay:0.2s">
+        <h4>🏗️ 基础搭建</h4>
+        <p>Gateway 网关、Business 服务、数据库表结构、RBAC 权限系统</p>
+      </div>
+      <div class="timeline-item" style="animation-delay:0.3s">
+        <h4>📸 照片管理</h4>
+        <p>上传、标签、搜索、缩略图、EXIF 解析、GPS 定位</p>
+      </div>
+      <div class="timeline-item" style="animation-delay:0.4s">
+        <h4>🗺️ 地图回忆</h4>
+        <p>ECharts 中国地图集成，城市级照片浏览，时间线视图</p>
+      </div>
+      <div class="timeline-item" style="animation-delay:0.5s">
+        <h4>🤖 AI 集成</h4>
+        <p>Python FastAPI 服务、Ollama 对接、Qwen2.5vl 图片分析、AI 对话</p>
+      </div>
+      <div class="timeline-item" style="animation-delay:0.6s">
+        <h4>👨‍👩‍👧‍👦 家庭共享</h4>
+        <p>家庭创建、成员管理、照片共享、好友系统</p>
+      </div>
+      <div class="timeline-item" style="animation-delay:0.7s">
+        <h4>📚 功能扩展</h4>
+        <p>图书管理、文件存储、人脸聚类、场景打标、操作日志</p>
+      </div>
+      <div class="timeline-item" style="animation-delay:0.8s">
+        <h4>✨ 持续优化</h4>
+        <p>中英文切换、深色模式、移动端适配、悬浮助手、全量测试</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>MIMO Smart-NAS · 本地智能照片管理系统 · 与 MIMO Code 携手构建 🐕</p>
+</footer>
+
+<script>
+// ── Particles Background ──
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Particle {
+  constructor() {
+    this.reset();
+  }
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.size = Math.random() * 2 + 0.5;
+    this.speedX = (Math.random() - 0.5) * 0.5;
+    this.speedY = (Math.random() - 0.5) * 0.5;
+    this.opacity = Math.random() * 0.5 + 0.1;
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+      this.reset();
+    }
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0, 210, 255, ${this.opacity})`;
+    ctx.fill();
+  }
+}
+
+for (let i = 0; i < 80; i++) {
+  particles.push(new Particle());
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => { p.update(); p.draw(); });
+
+  // Draw connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 150) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(0, 210, 255, ${0.05 * (1 - dist / 150)})`;
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ── Scroll Reveal ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Counter Animation ──
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      let current = 0;
+      const increment = target / 60;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          el.textContent = target + '+';
+          clearInterval(timer);
+        } else {
+          el.textContent = Math.floor(current);
+        }
+      }, 30);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-number').forEach(el => counterObserver.observe(el));
+
+// ── Smooth scroll ──
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// ── Nav background on scroll ──
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  if (window.scrollY > 50) {
+    nav.style.background = 'rgba(10, 14, 26, 0.95)';
+  } else {
+    nav.style.background = 'rgba(10, 14, 26, 0.85)';
+  }
+});
+</script>
+
+</body>
+</html>

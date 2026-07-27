@@ -8,7 +8,7 @@
             <el-tag v-if="selectedIds.length > 0" type="primary">{{ selectedIds.length }} {{ t('overview.selected') }}</el-tag>
           </div>
           <div style="display:flex;gap:12px;align-items:center">
-            <el-button type="primary" size="small" @click="router.push('/photo/upload')">{{ t('upload.clickUpload') }}</el-button>
+            <!-- <el-button type="primary" size="small" @click="router.push('/photo/upload')">{{ t('upload.clickUpload') }}</el-button> -->
             <template v-if="photoTab === 'my'">
               <el-select v-model="selectedTag" :placeholder="t('overview.filterTag')" clearable style="width:180px">
                 <el-option-group v-if="recentTags.length > 0" :label="t('overview.recentTags')">

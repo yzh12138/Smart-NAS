@@ -170,7 +170,7 @@
         <el-form-item :label="t('settings.apiUrl')">
           <el-input v-model="modelForm.apiUrl" :placeholder="apiUrlPlaceholder" />
         </el-form-item>
-        <el-form-item v-if="modelForm.modelType === 'openai'" label="API Key">
+        <el-form-item v-if="modelForm.modelType !== 'ollama'" label="API Key">
           <el-input v-model="mimoApiKey" :placeholder="t('settings.mimoApiKeyPlaceholder')" show-password />
         </el-form-item>
         <el-form-item :label="t('settings.modelPrompt')">
@@ -191,13 +191,17 @@ import { useI18n } from '../../utils/i18n'
 import { getDuplicateList, cleanDuplicates, getGlobalPrompt, updateGlobalPrompt, getAiModelList, createAiModel, updateAiModel, setDefaultAiModel, updateRecycleDays as apiUpdateRecycleDays, getUserInfo } from '../../api'
 import { useUserStore } from '../../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import QRCode from 'qrcodejs2'
+import QRCode from 'qrcode'
 
 const { t, setLang, lang } = useI18n()
 const userStore = useUserStore()
 const isAdmin = computed(() => {
-  const roles = userStore.userInfo?.roles
-  return roles && roles.some(r => r.roleKey === 'admin')
+  try {
+    const roles = userStore.userInfo?.roles
+    return roles && roles.some(r => r.roleKey === 'admin')
+  } catch {
+    return false
+  }
 })
 
 const settings = reactive({ theme: localStorage.getItem('theme') || 'light', language: localStorage.getItem('language') || 'zh' })
@@ -250,14 +254,17 @@ function generateQR() {
   if (!qrCodeRef.value) return
   qrCodeRef.value.innerHTML = ''
   try {
-    new QRCode(qrCodeRef.value, {
-      text: webdavUrl.value,
+    QRCode.toDataURL(webdavUrl.value, {
       width: 120,
-      height: 120,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    })
+      margin: 2,
+      color: { dark: '#000000', light: '#ffffff' }
+    }).then(url => {
+      const img = document.createElement('img')
+      img.src = url
+      img.style.width = '120px'
+      img.style.height = '120px'
+      qrCodeRef.value.appendChild(img)
+    }).catch(() => {})
   } catch {}
 }
 
@@ -335,8 +342,10 @@ async function cleanAllDuplicates() {
 }
 
 async function loadGlobalPrompt() {
-  const res = await getGlobalPrompt()
-  if (res.code === 200) globalPrompt.value = res.data.prompt || ''
+  try {
+    const res = await getGlobalPrompt()
+    if (res.code === 200) globalPrompt.value = res.data.prompt || ''
+  } catch {}
 }
 
 async function saveGlobalPrompt() {
@@ -345,8 +354,10 @@ async function saveGlobalPrompt() {
 }
 
 async function loadAiModels() {
-  const res = await getAiModelList()
-  if (res.code === 200) aiModels.value = res.data || []
+  try {
+    const res = await getAiModelList()
+    if (res.code === 200) aiModels.value = res.data || []
+  } catch {}
 }
 
 function showAddModel() {

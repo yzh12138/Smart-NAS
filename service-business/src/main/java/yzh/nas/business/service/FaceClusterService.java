@@ -75,7 +75,7 @@ public class FaceClusterService {
                 .collect(Collectors.toList());
 
         // 批量查询照片信息
-        String placeholders = photoIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String placeholders = photoIds.stream().map(id -> "?").collect(Collectors.joining(","));
         List<Map<String, Object>> photos = jdbcTemplate.queryForList(
                 "SELECT id, original_name, storage_path, thumbnail_path, city, province, shoot_time " +
                 "FROM photo WHERE id IN (" + placeholders + ") AND is_deleted = 0 ORDER BY shoot_time DESC",

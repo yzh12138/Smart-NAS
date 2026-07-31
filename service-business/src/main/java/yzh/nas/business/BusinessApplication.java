@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
-@MapperScan("yzh.stock.business.mapper")
+@MapperScan("yzh.nas.business.mapper")
 public class BusinessApplication {
     public static void main(String[] args) {
         SpringApplication.run(BusinessApplication.class, args);

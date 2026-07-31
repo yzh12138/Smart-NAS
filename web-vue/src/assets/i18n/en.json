@@ -205,7 +205,11 @@
     "rename": "Rename", "namePlaceholder": "Enter person name",
     "confirmDelete": "Delete this person? Associated face data will be removed",
     "confirmRemove": "Remove this photo from the person?",
-    "noPhotos": "No photos"
+    "noPhotos": "No photos",
+    "addPhotos": "Add Photos", "searchPhotos": "Search photos...",
+    "noAvailablePhotos": "No photos available to add",
+    "selectedCount": "{count} selected",
+    "addPhotosSuccess": "Successfully added {count} photos"
   },
   "backup": {
     "title": "Phone Backup (WebDAV)",

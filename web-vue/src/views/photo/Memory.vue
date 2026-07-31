@@ -144,7 +144,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { getCityPhotoStats, getPhotosByCity, getPhotoList, searchPhotos, deletePhoto, updatePhotoName, getMyFamilies, shareToFamily, getPhotoDetail } from '../../api'
+import { getCityPhotoStats, getPhotosByCity, getProvincePhotoStats, getPhotosByProvince, getPhotoList, searchPhotos, deletePhoto, updatePhotoName, getMyFamilies, shareToFamily, getPhotoDetail } from '../../api'
 import { useI18n } from '../../utils/i18n'
 import { ElMessage } from 'element-plus'
 
@@ -152,6 +152,7 @@ const { t, lang } = useI18n()
 
 const mapRef = ref()
 const cityStats = ref([])
+const provinceStats = ref([])
 const photos = ref([])
 const selectedCity = ref('')
 const searchKeyword = ref('')
@@ -174,6 +175,7 @@ let mapChart = null
 
 onMounted(async () => {
   await loadCityStats()
+  await loadProvinceStats()
   await loadAllPhotos()
   await nextTick()
   initMap()
@@ -182,6 +184,11 @@ onMounted(async () => {
 async function loadCityStats() {
   const res = await getCityPhotoStats()
   if (res.code === 200) cityStats.value = res.data
+}
+
+async function loadProvinceStats() {
+  const res = await getProvincePhotoStats()
+  if (res.code === 200) provinceStats.value = res.data
 }
 
 async function loadAllPhotos() {
@@ -194,6 +201,11 @@ async function loadPhotosByCity(city) {
   if (res.code === 200) { photos.value = res.data || []; photoTotal.value = res.data.length }
 }
 
+async function loadPhotosByProvince(province) {
+  const res = await getPhotosByProvince(province)
+  if (res.code === 200) { photos.value = res.data || []; photoTotal.value = res.data.length }
+}
+
 async function initMap() {
   try {
     const response = await fetch('/map/china.json')
@@ -202,8 +214,8 @@ async function initMap() {
 
     mapChart = echarts.init(mapRef.value)
 
-    const cityData = cityStats.value.map(item => ({
-      name: item.city,
+    const mapData = provinceStats.value.map(item => ({
+      name: item.province,
       value: item.count
     }))
 
@@ -217,7 +229,7 @@ async function initMap() {
       },
       visualMap: {
         min: 0,
-        max: Math.max(...cityData.map(d => d.value), 1),
+        max: Math.max(...mapData.map(d => d.value), 1),
         text: ['多', '少'],
         realtime: false,
         calculable: true,
@@ -233,7 +245,7 @@ async function initMap() {
           label: { show: true, color: '#333' },
           itemStyle: { areaColor: '#ffd166' }
         },
-        data: cityData
+        data: mapData
       }]
     })
 
@@ -242,7 +254,7 @@ async function initMap() {
         if (params.value && params.value > 0) {
           selectedCity.value = params.name
           photoPage.value = 1
-          loadPhotosByCity(params.name)
+          loadPhotosByProvince(params.name)
         } else {
           selectedCity.value = ''
           photoPage.value = 1
@@ -342,14 +354,14 @@ function downloadPhoto(photo) {
 
 function handlePageChange(page) {
   photoPage.value = page
-  if (selectedCity.value) loadPhotosByCity(selectedCity.value)
+  if (selectedCity.value) loadPhotosByProvince(selectedCity.value)
   else loadAllPhotos()
 }
 
 function handleSizeChange(size) {
   photoPageSize.value = size
   photoPage.value = 1
-  if (selectedCity.value) loadPhotosByCity(selectedCity.value)
+  if (selectedCity.value) loadPhotosByProvince(selectedCity.value)
   else loadAllPhotos()
 }
 

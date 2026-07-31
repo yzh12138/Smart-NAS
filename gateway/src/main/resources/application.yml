@@ -20,7 +20,7 @@ spring:
         - id: service-business
           uri: lb://service-business
           predicates:
-            - Path=/api/auth/**,/api/system/**,/api/photo/**,/api/tag/**,/api/recycle/**,/api/family/**,/api/friend/**,/api/ai-model/**,/api/ai-prompt/**,/api/log/**,/api/duplicate/**,/api/file/**,/api/book/**,/api/ai-chat/**
+            - Path=/api/auth/**,/api/system/**,/api/photo/**,/api/tag/**,/api/recycle/**,/api/family/**,/api/friend/**,/api/ai-model/**,/api/ai-prompt/**,/api/log/**,/api/duplicate/**,/api/file/**,/api/book/**,/api/ai-chat/**,/api/face/**,/api/city/**
           filters:
             - StripPrefix=0
           metadata:

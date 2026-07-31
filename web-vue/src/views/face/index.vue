@@ -37,6 +37,10 @@
 
     <!-- 人物照片详情弹窗 -->
     <el-dialog v-model="detailVisible" :title="currentCluster?.clusterName || t('face.unnamed')" width="80%" top="5vh">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <span style="color:#666">{{ clusterPhotos.length }} {{ t('face.photos') }}</span>
+        <el-button type="primary" size="small" @click="showAddPhotos">{{ t('face.addPhotos') }}</el-button>
+      </div>
       <div v-if="clusterPhotos.length > 0" class="photo-grid">
         <div v-for="photo in clusterPhotos" :key="photo.id" class="photo-item">
           <img :src="`/api/photo/${photo.id}/thumb`" @click="previewPhoto(photo)" />
@@ -50,6 +54,25 @@
         </div>
       </div>
       <el-empty v-else :description="t('face.noPhotos')" />
+    </el-dialog>
+
+    <!-- 添加照片弹窗 -->
+    <el-dialog v-model="addPhotosVisible" :title="t('face.addPhotos')" width="80%" top="5vh">
+      <div style="margin-bottom:12px">
+        <el-input v-model="photoSearchKeyword" :placeholder="t('face.searchPhotos')" clearable @input="debounceLoadAvailablePhotos" style="width:300px" />
+      </div>
+      <div v-if="availablePhotos.length > 0" class="photo-grid" style="max-height:400px;overflow-y:auto">
+        <div v-for="photo in availablePhotos" :key="photo.id" class="photo-item" :class="{ selected: selectedPhotoIds.includes(photo.id) }" @click="togglePhotoSelection(photo.id)">
+          <img :src="`/api/photo/${photo.id}/thumb`" />
+          <div v-if="selectedPhotoIds.includes(photo.id)" class="select-badge"><el-icon><Check /></el-icon></div>
+        </div>
+      </div>
+      <el-empty v-else :description="t('face.noAvailablePhotos')" />
+      <template #footer>
+        <span style="color:#999;margin-right:auto">{{ t('face.selectedCount', { count: selectedPhotoIds.length }) }}</span>
+        <el-button @click="addPhotosVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :disabled="selectedPhotoIds.length === 0" @click="handleAddPhotos">{{ t('common.confirm') }}</el-button>
+      </template>
     </el-dialog>
 
     <!-- 重命名弹窗 -->
@@ -79,7 +102,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getFaceClusters, getFaceClusterPhotos, createFaceCluster, renameFaceCluster, deleteFaceCluster, removePhotoFromCluster } from '../../api'
+import { getFaceClusters, getFaceClusterPhotos, createFaceCluster, renameFaceCluster, deleteFaceCluster, removePhotoFromCluster, movePhotoToCluster, getPhotoList } from '../../api'
 import { useI18n } from '../../utils/i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -95,6 +118,11 @@ const createVisible = ref(false)
 const createName = ref('')
 const previewVisible = ref(false)
 const previewPhotoUrl = ref('')
+const addPhotosVisible = ref(false)
+const availablePhotos = ref([])
+const selectedPhotoIds = ref([])
+const photoSearchKeyword = ref('')
+let searchTimer = null
 
 onMounted(() => loadClusters())
 
@@ -185,6 +213,51 @@ function previewPhoto(photo) {
   previewPhotoUrl.value = `/api/photo/${photo.id}/original`
   previewVisible.value = true
 }
+
+async function showAddPhotos() {
+  selectedPhotoIds.value = []
+  photoSearchKeyword.value = ''
+  addPhotosVisible.value = true
+  await loadAvailablePhotos()
+}
+
+async function loadAvailablePhotos() {
+  const params = { page: 1, size: 100, mediaType: 'image' }
+  if (photoSearchKeyword.value.trim()) params.keyword = photoSearchKeyword.value.trim()
+  const res = await getPhotoList(params)
+  if (res.code === 200) availablePhotos.value = res.data.records || []
+}
+
+function debounceLoadAvailablePhotos() {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => loadAvailablePhotos(), 300)
+}
+
+function togglePhotoSelection(photoId) {
+  const idx = selectedPhotoIds.value.indexOf(photoId)
+  if (idx >= 0) selectedPhotoIds.value.splice(idx, 1)
+  else selectedPhotoIds.value.push(photoId)
+}
+
+async function handleAddPhotos() {
+  if (selectedPhotoIds.value.length === 0) return
+  try {
+    let successCount = 0
+    for (const photoId of selectedPhotoIds.value) {
+      const res = await movePhotoToCluster(currentCluster.value.id, photoId)
+      if (res.code === 200) successCount++
+    }
+    ElMessage.success(t('face.addPhotosSuccess', { count: successCount }))
+    addPhotosVisible.value = false
+    // 刷新聚类照片
+    const res = await getFaceClusterPhotos(currentCluster.value.id)
+    if (res.code === 200) clusterPhotos.value = res.data || []
+    // 刷新聚类列表（更新封面和计数）
+    loadClusters()
+  } catch {
+    ElMessage.error(t('common.failed'))
+  }
+}
 </script>
 
 <style scoped>
@@ -210,4 +283,9 @@ function previewPhoto(photo) {
 .photo-item img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
 .photo-actions { position: absolute; top: 4px; right: 4px; opacity: 0; transition: opacity 0.2s; }
 .photo-item:hover .photo-actions { opacity: 1; }
+.photo-item.selected { outline: 3px solid #409eff; border-radius: 8px; }
+.select-badge {
+  position: absolute; bottom: 4px; right: 4px; width: 24px; height: 24px;
+  background: #409eff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;
+}
 </style>

@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS face_photo (
     cluster_id BIGINT NOT NULL,
     photo_id BIGINT NOT NULL,
     face_bbox VARCHAR(50),
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cluster_id) REFERENCES face_cluster(id),
     FOREIGN KEY (photo_id) REFERENCES photo(id)
 );

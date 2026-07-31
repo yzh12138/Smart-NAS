@@ -134,6 +134,18 @@ public class PhotoController {
         return ResponseEntity.ok(Map.of("code", 200, "data", photoService.getPhotosByCity(userId, city)));
     }
 
+    @GetMapping("/map/provinces")
+    public ResponseEntity<?> getProvinceStats(HttpServletRequest request) {
+        Long userId = Long.parseLong(request.getHeader("X-User-Id"));
+        return ResponseEntity.ok(Map.of("code", 200, "data", photoService.getProvincePhotoStats(userId)));
+    }
+
+    @GetMapping("/map/province/{province}")
+    public ResponseEntity<?> getPhotosByProvince(@PathVariable String province, HttpServletRequest request) {
+        Long userId = Long.parseLong(request.getHeader("X-User-Id"));
+        return ResponseEntity.ok(Map.of("code", 200, "data", photoService.getPhotosByProvince(userId, province)));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<?> searchPhotos(
             @RequestParam(value = "keyword") String keyword,

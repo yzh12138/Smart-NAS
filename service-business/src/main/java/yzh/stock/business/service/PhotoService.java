@@ -238,6 +238,9 @@ public class PhotoService {
         Photo photo = photoMapper.selectById(photoId);
         if (photo == null) return;
 
+        // 先清除旧的 AI 标签，再插入用户选择的标签
+        jdbcTemplate.update("DELETE FROM photo_tag WHERE photo_id = ? AND tag_source = 2", photoId);
+
         // 保存用户选择的标签
         if (selectedTags != null) {
             for (String tagName : selectedTags) {
@@ -285,7 +288,14 @@ public class PhotoService {
             p.setCity((String) row.get("city"));
             p.setProvince((String) row.get("province"));
             p.setMediaType((String) row.get("media_type"));
-            p.setCreateTime(row.get("create_time") != null ? ((java.sql.Timestamp) row.get("create_time")).toLocalDateTime() : null);
+            Object createTimeObj = row.get("create_time");
+            if (createTimeObj instanceof java.sql.Timestamp) {
+                p.setCreateTime(((java.sql.Timestamp) createTimeObj).toLocalDateTime());
+            } else if (createTimeObj instanceof java.time.LocalDateTime) {
+                p.setCreateTime((java.time.LocalDateTime) createTimeObj);
+            } else {
+                p.setCreateTime(null);
+            }
             photos.add(p);
         }
         return photos;
@@ -369,9 +379,8 @@ public class PhotoService {
                 "LEFT JOIN photo_tag pt ON p.id = pt.photo_id AND pt.tag_source = 2 " +
                 "LEFT JOIN tag t ON pt.tag_id = t.id " +
                 "WHERE p.user_id = ? AND p.is_deleted = 0 AND p.media_type = 'image' " +
-                "AND (p.ai_analyzed = 1 OR NOT EXISTS (SELECT 1 FROM photo_tag pt2 WHERE pt2.photo_id = p.id)) " +
                 "GROUP BY p.id, p.original_name, p.city, p.province, p.gps_lat, p.gps_lng, p.ai_analyzed, p.create_time " +
-                "ORDER BY p.ai_analyzed ASC, p.create_time DESC",
+                "ORDER BY p.create_time DESC",
                 userId
         );
         return queue;
@@ -391,9 +400,11 @@ public class PhotoService {
                     insertPhotoTag(photoId, tag.getId(), 2);
                 }
             }
+            photo.setAiAnalyzed(2); // 2 = 已审核批准
         } else if (!approved) {
             // 拒绝：清除AI标签
             jdbcTemplate.update("DELETE FROM photo_tag WHERE photo_id = ? AND tag_source = 2", photoId);
+            photo.setAiAnalyzed(3); // 3 = 已拒绝
         }
 
         if (city != null) photo.setCity(city);
@@ -542,6 +553,38 @@ public class PhotoService {
             result.add(item);
         });
         return result;
+    }
+
+    public List<Map<String, Object>> getProvincePhotoStats(Long userId) {
+        List<Photo> photos = photoMapper.selectList(
+                new LambdaQueryWrapper<Photo>()
+                        .eq(Photo::getUserId, userId)
+                        .eq(Photo::getIsDeleted, 0)
+                        .isNotNull(Photo::getProvince)
+                        .select(Photo::getProvince, Photo::getId)
+        );
+        Map<String, Long> provinceCount = new HashMap<>();
+        for (Photo p : photos) {
+            provinceCount.merge(p.getProvince(), 1L, Long::sum);
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        provinceCount.forEach((province, count) -> {
+            Map<String, Object> item = new HashMap<>();
+            item.put("province", province);
+            item.put("count", count);
+            result.add(item);
+        });
+        return result;
+    }
+
+    public List<Photo> getPhotosByProvince(Long userId, String province) {
+        return photoMapper.selectList(
+                new LambdaQueryWrapper<Photo>()
+                        .eq(Photo::getUserId, userId)
+                        .eq(Photo::getIsDeleted, 0)
+                        .eq(Photo::getProvince, province)
+                        .orderByDesc(Photo::getShootTime)
+        );
     }
 
     public List<Photo> getPhotosByCity(Long userId, String city) {

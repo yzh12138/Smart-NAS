@@ -4,7 +4,8 @@
     <header class="mobile-header">
       <span class="mobile-title">{{ t('app.title') }}</span>
       <el-dropdown @command="handleCommand">
-        <el-avatar :size="32" icon="UserFilled" />
+        <el-avatar v-if="userStore.userInfo?.avatar" :size="32" :src="userStore.userInfo.avatar" />
+        <el-avatar v-else :size="32" icon="UserFilled" />
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="logout">{{ t('common.logout') }}</el-dropdown-item>
@@ -64,7 +65,8 @@
         <div class="header-right">
           <span class="nickname">{{ userStore.userInfo?.nickname || 'User' }}</span>
           <el-dropdown @command="handleCommand">
-            <el-avatar :size="32" icon="UserFilled" />
+            <el-avatar v-if="userStore.userInfo?.avatar" :size="32" :src="userStore.userInfo.avatar" />
+            <el-avatar v-else :size="32" icon="UserFilled" />
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="logout">{{ t('common.logout') }}</el-dropdown-item>

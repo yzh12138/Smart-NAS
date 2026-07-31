@@ -486,7 +486,8 @@
     "familyRoleGrandma": "奶奶",
     "familyRoleMaternalGrandpa": "外公",
     "familyRoleMaternalGrandma": "外婆",
-    "familyRoleOther": "其他"
+    "familyRoleOther": "其他",
+    "save":"保存"
   },
   "roleManage": {
     "userManagement": "用户管理",

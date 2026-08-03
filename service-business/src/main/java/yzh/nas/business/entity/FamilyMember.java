@@ -16,4 +16,6 @@ public class FamilyMember {
     private LocalDateTime joinTime;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+    @TableField(exist = false)
+    private String memberName;
 }

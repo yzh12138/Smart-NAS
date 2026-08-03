@@ -8,30 +8,34 @@ import yzh.nas.business.entity.Family;
 import yzh.nas.business.entity.FamilyMember;
 import yzh.nas.business.entity.FamilyMedia;
 import yzh.nas.business.entity.Photo;
+import yzh.nas.business.entity.SysUser;
 import yzh.nas.business.mapper.FamilyMapper;
 import yzh.nas.business.mapper.FamilyMemberMapper;
 import yzh.nas.business.mapper.FamilyMediaMapper;
 import yzh.nas.business.mapper.PhotoMapper;
+import yzh.nas.business.mapper.SysUserMapper;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-public class FamilyService extends ServiceImpl<FamilyMapper,Family> {
+public class FamilyService extends ServiceImpl<FamilyMapper, Family> {
 
     private final FamilyMapper familyMapper;
     private final FamilyMemberMapper memberMapper;
     private final FamilyMediaMapper mediaMapper;
     private final PhotoMapper photoMapper;
     private final JdbcTemplate jdbcTemplate;
+    private final SysUserMapper userMapper;
 
     public FamilyService(FamilyMapper familyMapper, FamilyMemberMapper memberMapper,
-                         FamilyMediaMapper mediaMapper, PhotoMapper photoMapper, JdbcTemplate jdbcTemplate) {
+                         FamilyMediaMapper mediaMapper, PhotoMapper photoMapper, JdbcTemplate jdbcTemplate, SysUserMapper userMapper) {
         this.familyMapper = familyMapper;
         this.memberMapper = memberMapper;
         this.mediaMapper = mediaMapper;
         this.photoMapper = photoMapper;
         this.jdbcTemplate = jdbcTemplate;
+        this.userMapper = userMapper;
     }
 
     // 家庭管理
@@ -196,10 +200,17 @@ public class FamilyService extends ServiceImpl<FamilyMapper,Family> {
     }
 
     public List<FamilyMember> getMembers(Long familyId) {
-        return memberMapper.selectList(
-                new LambdaQueryWrapper<FamilyMember>()
-                        .eq(FamilyMember::getFamilyId, familyId)
-        );
+        LambdaQueryWrapper<FamilyMember> eq = new LambdaQueryWrapper<FamilyMember>()
+                .eq(FamilyMember::getFamilyId, familyId);
+        List<FamilyMember> familyMembers = memberMapper.selectList(eq);
+        for (FamilyMember familyMember : familyMembers) {
+            LambdaQueryWrapper<SysUser> qw = new LambdaQueryWrapper<>();
+            qw.eq(SysUser::getId, familyMember.getId());
+            SysUser user = userMapper.selectOne(qw);
+            familyMember.setMemberName(user.getUsername());
+        }
+
+        return familyMembers;
     }
 
     public List<FamilyMember> getPendingMembers(Long familyId) {

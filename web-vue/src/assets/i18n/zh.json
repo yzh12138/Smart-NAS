@@ -181,7 +181,8 @@
     "inviteSuccess": "邀请成功",
     "alreadyMember": "该用户已是家庭成员",
     "sendInvite": "发送邀请",
-    "selectFriend": "选择好友"
+    "selectFriend": "选择好友",
+    "memberName":"成员名称"
   },
   "video": {
     "noVideos": "暂无视频",
@@ -466,7 +467,8 @@
     "noPending": "暂无待审批任务",
     "pending": "待处理",
     "type": "类型",
-    "target": "对象"
+    "target": "对象",
+    "applicant":"申请人"
   },
   "profile": {
     "title": "个人资料",

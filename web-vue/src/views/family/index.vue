@@ -12,7 +12,6 @@
           <div v-for="f in families" :key="f.id" class="family-item" :class="{ active: selectedFamily?.id === f.id }" @click="selectFamily(f)">
             <div>
               <span>{{ f.familyName }}</span>
-              <el-tag size="small" type="info" style="margin-left:8px">{{ f.familyCode }}</el-tag>
             </div>
             <el-tag size="small" v-if="f.ownerId === currentUserId">{{ t('family.owner') }}</el-tag>
           </div>

@@ -9,6 +9,37 @@
       </el-col>
     </el-row>
 
+<!-- 任务中心 -->
+    <el-row :gutter="16" style="margin-top:16px" v-if="hasPendingTasks">
+      <el-col :span="24">
+        <el-card>
+          <template #header>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span>📋 {{ t('task.title') }}</span>
+              <el-tag type="warning" size="small">{{ pendingCount }} {{ t('task.pending') }}</el-tag>
+            </div>
+          </template>
+          <el-table :data="pendingTasks" stripe max-height="300">
+            <el-table-column prop="type" :label="t('task.type')" width="120">
+              <template #default="{ row }">
+                <el-tag :type="row.type === 'family' ? 'primary' : 'success'" size="small">
+                  {{ row.type === 'family' ? t('task.familyJoin') : t('task.friendRequest') }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="username" :label="t('task.applicant')" />
+            <el-table-column prop="targetName" :label="t('task.target')" />
+            <el-table-column :label="t('family.actions')" width="200">
+              <template #default="{ row }">
+                <el-button size="small" type="success" @click="handleApproveTask(row)">{{ t('family.approve') }}</el-button>
+                <el-button size="small" type="danger" @click="handleRejectTask(row)">{{ t('family.reject') }}</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <!-- 管理员：用户数据概览 -->
     <el-card v-if="userStats.length > 0" style="margin-top:20px">
       <template #header>
@@ -43,37 +74,6 @@
         <el-card>
           <template #header>🌍 {{ t('dashboard.cityDistribution') }}</template>
           <div ref="chartRef" style="height:300px"></div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 任务中心 -->
-    <el-row :gutter="16" style="margin-top:16px" v-if="hasPendingTasks">
-      <el-col :span="24">
-        <el-card>
-          <template #header>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span>📋 {{ t('task.title') }}</span>
-              <el-tag type="warning" size="small">{{ pendingCount }} {{ t('task.pending') }}</el-tag>
-            </div>
-          </template>
-          <el-table :data="pendingTasks" stripe max-height="300">
-            <el-table-column prop="type" :label="t('task.type')" width="120">
-              <template #default="{ row }">
-                <el-tag :type="row.type === 'family' ? 'primary' : 'success'" size="small">
-                  {{ row.type === 'family' ? t('task.familyJoin') : t('task.friendRequest') }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="username" :label="t('task.applicant')" />
-            <el-table-column prop="targetName" :label="t('task.target')" />
-            <el-table-column :label="t('family.actions')" width="200">
-              <template #default="{ row }">
-                <el-button size="small" type="success" @click="handleApproveTask(row)">{{ t('family.approve') }}</el-button>
-                <el-button size="small" type="danger" @click="handleRejectTask(row)">{{ t('family.reject') }}</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
         </el-card>
       </el-col>
     </el-row>

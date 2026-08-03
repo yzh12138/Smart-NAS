@@ -44,6 +44,7 @@
         <el-tab-pane :label="t('family.approved')" name="approved">
           <el-table :data="approvedMembers" stripe>
             <el-table-column prop="userId" :label="t('family.userId')" />
+            <el-table-column prop="memberName" :label="t('family.memberName')" />
             <el-table-column prop="role" :label="t('family.role')" />
             <el-table-column :label="t('family.actions')" width="100">
               <template #default="{ row }">

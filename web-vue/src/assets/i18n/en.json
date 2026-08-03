@@ -181,7 +181,8 @@
     "inviteSuccess": "Invitation sent",
     "alreadyMember": "This user is already a member",
     "sendInvite": "Send Invite",
-    "selectFriend": "Select Friend"
+    "selectFriend": "Select Friend",
+    "memberName":"member name"
   },
   "video": {
     "noVideos": "No videos yet",
@@ -325,7 +326,8 @@
     "confirmApprove": "Approve AI tags for this photo?",
     "confirmReject": "Reject all AI tags for this photo?",
     "scanComplete": "Scan complete: {total} total, {success} succeeded, {failed} failed",
-    "scanFailed": "Scan failed"
+    "scanFailed": "Scan failed",
+    "scanApprove": "Confirm full AI scan?"
   },
   "logs": {
     "user": "User",
@@ -458,14 +460,14 @@
     "title": "Task Center",
     "familyJoin": "Family Requests",
     "friendRequest": "Friend Requests",
-    "申请人": "Applicant",
     "family": "Family",
     "nickname": "Nickname",
     "time": "Time",
     "noPending": "No pending tasks",
     "pending": "Pending",
     "type": "Type",
-    "target": "Target"
+    "target": "Target",
+    "applicant":"applicant"
   },
   "profile": {
     "title": "Personal Profile",

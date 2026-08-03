@@ -4,7 +4,7 @@
       <template #header>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span>{{ t('menu.fileStorage') }}</span>
-          <el-button type="primary" size="small" @click="uploadDialogVisible = true">{{ t('common.create') }}</el-button>
+          <el-button type="primary" size="small" @click="uploadDialogVisible = true">{{ t('menu.upload') }}</el-button>
         </div>
       </template>
       <el-form :inline="true" style="margin-bottom:16px">

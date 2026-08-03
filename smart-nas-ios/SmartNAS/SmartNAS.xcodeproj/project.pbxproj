@@ -1,0 +1,302 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10001 /* SmartNASApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10001; };
+		A10002 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10002; };
+		A10003 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10003; };
+		A10004 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10004; };
+		A10005 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10005; };
+		A10006 /* CommonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10006; };
+		A10007 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10007; };
+		A10008 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008; };
+		A10009 /* PhotoGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009; };
+		A10010 /* PhotoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010; };
+		A10011 /* PhotoUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10011; };
+		A10012 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10012; };
+		A10013 /* AIChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10013; };
+		A10014 /* FileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10014; };
+		A10015 /* BookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10015; };
+		A10016 /* FamilyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10016; };
+		A10017 /* FriendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10017; };
+		A10018 /* FaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10018; };
+		A10019 /* TagsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10019; };
+		A10020 /* RecycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10020; };
+		A10021 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10021; };
+		A10022 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B10001 /* SmartNASApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartNASApp.swift; sourceTree = "<group>"; };
+		B10002 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		B10003 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		B10004 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		B10005 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		B10006 /* CommonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonViews.swift; sourceTree = "<group>"; };
+		B10007 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		B10008 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B10009 /* PhotoGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGalleryView.swift; sourceTree = "<group>"; };
+		B10010 /* PhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDetailView.swift; sourceTree = "<group>"; };
+		B10011 /* PhotoUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoUploadView.swift; sourceTree = "<group>"; };
+		B10012 /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
+		B10013 /* AIChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatView.swift; sourceTree = "<group>"; };
+		B10014 /* FileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileView.swift; sourceTree = "<group>"; };
+		B10015 /* BookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookView.swift; sourceTree = "<group>"; };
+		B10016 /* FamilyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyView.swift; sourceTree = "<group>"; };
+		B10017 /* FriendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendView.swift; sourceTree = "<group>"; };
+		B10018 /* FaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceView.swift; sourceTree = "<group>"; };
+		B10019 /* TagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagsView.swift; sourceTree = "<group>"; };
+		B10020 /* RecycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecycleView.swift; sourceTree = "<group>"; };
+		B10021 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B10022 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		B10023 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		C00001 = {
+			isa = PBXGroup;
+			children = (
+				C00002 /* SmartNAS */,
+			);
+			sourceTree = "<group>";
+		};
+		C00002 /* SmartNAS */ = {
+			isa = PBXGroup;
+			children = (
+				C00003 /* App */,
+				C00004 /* Models */,
+				C00005 /* Services */,
+				C00006 /* Components */,
+				C00007 /* Theme */,
+				C00008 /* Views */,
+				B10023 /* Info.plist */,
+			);
+			path = SmartNAS;
+			sourceTree = "<group>";
+		};
+		C00003 /* App */ = {
+			isa = PBXGroup;
+			children = (B10001);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C00004 /* Models */ = {
+			isa = PBXGroup;
+			children = (B10003);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C00005 /* Services */ = {
+			isa = PBXGroup;
+			children = (B10002, B10004);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C00006 /* Components */ = {
+			isa = PBXGroup;
+			children = (B10006);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		C00007 /* Theme */ = {
+			isa = PBXGroup;
+			children = (B10005);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		C00008 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C00009 /* Login */,
+				C00010 /* Home */,
+				C00011 /* Photo */,
+				C00012 /* Video */,
+				C00013 /* AIChat */,
+				C00014 /* File */,
+				C00015 /* Book */,
+				C00016 /* Family */,
+				C00017 /* Friend */,
+				C00018 /* Face */,
+				C00019 /* Tags */,
+				C00020 /* Recycle */,
+				C00021 /* Settings */,
+				C00022 /* Profile */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C00009 /* Login */ = { isa = PBXGroup; children = (B10007); path = Login; sourceTree = "<group>"; };
+		C00010 /* Home */ = { isa = PBXGroup; children = (B10008); path = Home; sourceTree = "<group>"; };
+		C00011 /* Photo */ = { isa = PBXGroup; children = (B10009, B10010, B10011); path = Photo; sourceTree = "<group>"; };
+		C00012 /* Video */ = { isa = PBXGroup; children = (B10012); path = Video; sourceTree = "<group>"; };
+		C00013 /* AIChat */ = { isa = PBXGroup; children = (B10013); path = AIChat; sourceTree = "<group>"; };
+		C00014 /* File */ = { isa = PBXGroup; children = (B10014); path = File; sourceTree = "<group>"; };
+		C00015 /* Book */ = { isa = PBXGroup; children = (B10015); path = Book; sourceTree = "<group>"; };
+		C00016 /* Family */ = { isa = PBXGroup; children = (B10016); path = Family; sourceTree = "<group>"; };
+		C00017 /* Friend */ = { isa = PBXGroup; children = (B10017); path = Friend; sourceTree = "<group>"; };
+		C00018 /* Face */ = { isa = PBXGroup; children = (B10018); path = Face; sourceTree = "<group>"; };
+		C00019 /* Tags */ = { isa = PBXGroup; children = (B10019); path = Tags; sourceTree = "<group>"; };
+		C00020 /* Recycle */ = { isa = PBXGroup; children = (B10020); path = Recycle; sourceTree = "<group>"; };
+		C00021 /* Settings */ = { isa = PBXGroup; children = (B10021); path = Settings; sourceTree = "<group>"; };
+		C00022 /* Profile */ = { isa = PBXGroup; children = (B10022); path = Profile; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D00001 /* SmartNAS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D00010;
+			buildPhases = (D00002 /* Sources */, D00003 /* Frameworks */, D00004 /* Resources */);
+			buildRules = ();
+			dependencies = ();
+			name = SmartNAS;
+			productName = SmartNAS;
+			productReference = D00005;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D00006 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+			};
+			buildConfigurationList = D00009;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = ("zh-Hans", en, Base);
+			mainGroup = C00001;
+			productRefGroup = C00002;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (D00001);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D00002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10001, A10002, A10003, A10004, A10005, A10006, A10007, A10008,
+				A10009, A10010, A10011, A10012, A10013, A10014, A10015, A10016,
+				A10017, A10018, A10019, A10020, A10021, A10022,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		D00007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		D00008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D00011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmartNAS/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.smartnas.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D00012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SmartNAS/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.smartnas.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D00009 /* Build configuration list for PBXProject "SmartNAS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (D00007, D00008);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+	

@@ -18,7 +18,6 @@ import java.util.List;
  * 2. 旧 AES 密文 → 尝试解密后重新 BCrypt 哈希
  * 3. 明文密码 → 直接 BCrypt 哈希
  */
-@Component
 public class DataInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);

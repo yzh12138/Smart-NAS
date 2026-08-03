@@ -90,7 +90,8 @@
     "tagsSaved": "标签已保存",
     "address": "拍摄地址",
     "addressPlaceholder": "选择省/市",
-    "similarTags": "发现相似标签，点击采纳"
+    "similarTags": "发现相似标签，点击采纳",
+    "description":"AI描述"
   },
   "memory": {
     "photoMap": "照片地图",

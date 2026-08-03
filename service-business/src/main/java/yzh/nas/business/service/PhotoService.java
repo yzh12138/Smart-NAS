@@ -234,7 +234,7 @@ public class PhotoService {
     /**
      * 用户确认选择的标签，保存到数据库
      */
-    public void confirmAiTags(Long photoId, List<String> selectedTags, String city, String province) {
+    public void confirmAiTags(Long photoId, List<String> selectedTags, String city, String province, String description) {
         Photo photo = photoMapper.selectById(photoId);
         if (photo == null) return;
 
@@ -255,6 +255,7 @@ public class PhotoService {
         // 更新城市信息
         if (city != null) photo.setCity(city);
         if (province != null) photo.setProvince(province);
+        if (description != null) photo.setDescription(description);
         photo.setAiAnalyzed(1);
         photoMapper.updateById(photo);
     }

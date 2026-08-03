@@ -90,7 +90,8 @@
     "tagsSaved": "Tags saved",
     "address": "Location",
     "addressPlaceholder": "Select Province/City",
-    "similarTags": "Similar tags found, click to adopt"
+    "similarTags": "Similar tags found, click to adopt",
+    "description":"AI description"
   },
   "memory": {
     "photoMap": "Photo Map",

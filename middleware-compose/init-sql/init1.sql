@@ -1,0 +1,1 @@
+ALTER TABLE photo ADD COLUMN description VARCHAR(500) NULL COMMENT '图片描述';

@@ -106,7 +106,7 @@ async def analyze_image(image_path: str, prompt: str = None) -> dict:
   "tags": ["标签1", "标签2", ...],
   "city": "城市名（如果能识别出拍摄地点）",
   "province": "省份名",
-  "description": "一句话描述这张照片",
+  "description": "用一句精准的话描述这张照片",
   "watermark_lat": null,
   "watermark_lng": null
 }

@@ -1,6 +1,7 @@
 package yzh.nas.business.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import yzh.nas.business.entity.Family;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-public class FamilyService {
+public class FamilyService extends ServiceImpl<FamilyMapper,Family> {
 
     private final FamilyMapper familyMapper;
     private final FamilyMemberMapper memberMapper;
@@ -67,7 +68,7 @@ public class FamilyService {
     public Family findByCode(String code) {
         return familyMapper.selectOne(
                 new LambdaQueryWrapper<Family>()
-                        .eq(Family::getFamilyCode, code)
+                        .eq(Family::getFamilyName, code)
                         .eq(Family::getStatus, 1)
         );
     }

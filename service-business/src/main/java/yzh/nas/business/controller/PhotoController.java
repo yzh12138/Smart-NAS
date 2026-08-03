@@ -170,7 +170,8 @@ public class PhotoController {
         List<String> tags = (List<String>) body.get("tags");
         String city = (String) body.get("city");
         String province = (String) body.get("province");
-        photoService.confirmAiTags(id, tags, city, province);
+        String description = (String) body.get("description");
+        photoService.confirmAiTags(id, tags, city, province,description);
         return ResponseEntity.ok(Map.of("code", 200, "message", "标签已保存"));
     }
 

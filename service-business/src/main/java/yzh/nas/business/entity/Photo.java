@@ -31,6 +31,7 @@ public class Photo {
     private LocalDateTime deletedTime;
     private Integer recycleDays;
     private Integer clickCount;
+    private String description;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 }

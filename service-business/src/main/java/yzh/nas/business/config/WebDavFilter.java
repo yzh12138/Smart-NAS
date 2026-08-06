@@ -132,8 +132,47 @@ public class WebDavFilter implements Filter {
         String path = extractPath(request);
         File file = resolvePath(path);
 
-        if (!file.exists() || !file.isFile()) {
+        if (!file.exists()) {
             response.setStatus(404);
+            return;
+        }
+
+        // 如果是目录，返回说明页面
+        if (file.isDirectory()) {
+            response.setStatus(200);
+            response.setContentType("text/html; charset=utf-8");
+            String html = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <title>Smart-NAS WebDAV</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; text-align: center; background: #f5f5f5; }
+                        .container { max-width: 400px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        h1 { color: #409eff; font-size: 24px; }
+                        p { color: #666; line-height: 1.6; }
+                        .info { background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left; }
+                        .info p { margin: 8px 0; font-size: 14px; }
+                        .label { color: #999; }
+                        .value { color: #333; font-weight: 500; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Smart-NAS WebDAV</h1>
+                        <p>WebDAV 服务运行正常！</p>
+                        <div class="info">
+                            <p><span class="label">状态：</span><span class="value">已连接</span></p>
+                            <p><span class="label">说明：</span><span class="value">请使用 WebDAV 客户端连接此地址进行文件备份</span></p>
+                        </div>
+                        <p style="font-size:12px; color:#999;">iOS 文件App / Android FolderSync / Windows 资源管理器</p>
+                    </div>
+                </body>
+                </html>
+                """;
+            response.getWriter().write(html);
             return;
         }
 

@@ -6,26 +6,23 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-
 import com.smartnas.app.data.api.SmartNASApi
 import com.smartnas.app.data.model.Book
+import com.smartnas.app.data.model.PageResult
 import com.smartnas.app.ui.components.*
+import com.smartnas.app.util.Resource
 import com.smartnas.app.util.formatFileSize
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,97 +35,111 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookViewModel @Inject constructor(private val api: SmartNASApi) : androidx.lifecycle.ViewModel() {
-    private val _books = MutableStateFlow<List<Book>>(emptyList())
-    val books: StateFlow<List<Book>> = _books
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    private val _books = MutableStateFlow<Resource<PageResult<Book>>>(Resource.Loading)
+    val books: StateFlow<Resource<PageResult<Book>>> = _books
 
     fun loadBooks() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _books.value = Resource.Loading
             try {
                 val resp = api.getBookList()
-                if (resp.isSuccessful && resp.body()?.code == 0) _books.value = resp.body()?.data?.records ?: emptyList()
-            } catch (_: Exception) {}
-            _isLoading.value = false
+                if (resp.isSuccessful && resp.body()?.code == 200) {
+                    _books.value = Resource.Success(resp.body()!!.data!!)
+                } else {
+                    _books.value = Resource.Error(resp.body()?.message ?: "加载失败")
+                }
+            } catch (e: Exception) {
+                _books.value = Resource.Error(e.message ?: "网络错误")
+            }
         }
     }
 
-    fun uploadBook(file: File, title: String, onDone: () -> Unit) {
+    fun uploadBook(uri: Uri, context: android.content.Context) {
         viewModelScope.launch {
             try {
-                val part = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody("*/*".toMediaTypeOrNull()))
-                val titleBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
-                api.uploadBook(part, title = titleBody)
-                loadBooks(); onDone()
+                val inputStream = context.contentResolver.openInputStream(uri) ?: return@launch
+                val tempFile = File.createTempFile("book_", ".epub", context.cacheDir)
+                tempFile.outputStream().use { inputStream.copyTo(it) }
+                val requestBody = tempFile.asRequestBody("application/octet-stream".toMediaTypeOrNull())
+                val part = MultipartBody.Part.createFormData("file", tempFile.name, requestBody)
+                api.uploadBook(part)
+                loadBooks()
             } catch (_: Exception) {}
         }
     }
 
     fun deleteBook(id: Long) {
         viewModelScope.launch {
-            try { api.deleteBook(id); loadBooks() } catch (_: Exception) {}
+            try {
+                api.deleteBook(id)
+                loadBooks()
+            } catch (_: Exception) {}
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookScreen(navController: NavController, viewModel: BookViewModel = hiltViewModel()) {
+fun BookScreen(
+    navController: NavController,
+    viewModel: BookViewModel = hiltViewModel()
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val books by viewModel.books.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    var showUpload by remember { mutableStateOf(false) }
-    var uploading by remember { mutableStateOf(false) }
-
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            uploading = true
-            val file = File.createTempFile("book_", ".epub", context.cacheDir)
-            context.contentResolver.openInputStream(it)!!.use { input -> file.outputStream().use { out -> input.copyTo(out) } }
-            val name = file.nameWithoutExtension
-            viewModel.uploadBook(file, name) { uploading = false; showUpload = false }
-        }
-    }
+    val pickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri -> uri?.let { viewModel.uploadBook(it, context) } }
 
     LaunchedEffect(Unit) { viewModel.loadBooks() }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("图书管理") },
-                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
-                actions = { IconButton(onClick = { launcher.launch("*/*") }) { Icon(Icons.Default.Add, null) } }
-            )
+        topBar = { SmartTopBar(title = "图书管理", onBack = { navController.popBackStack() }) },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { pickerLauncher.launch("*/*") }) {
+                Icon(Icons.Default.Upload, contentDescription = "上传图书")
+            }
         }
     ) { padding ->
-        when {
-            isLoading || uploading -> LoadingScreen(modifier = Modifier.padding(padding))
-            books.isEmpty() -> EmptyState(Icons.Default.MenuBook, "暂无图书", "上传 EPUB 或 PDF 文件", modifier = Modifier.padding(padding))
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(books) { book ->
-                        Card(modifier = Modifier.fillMaxWidth()) {
-                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Surface(
-                                    modifier = Modifier.size(50.dp),
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.tertiaryContainer
+        when (val b = books) {
+            Resource.Idle -> {}
+            is Resource.Loading -> LoadingScreen(modifier = Modifier.padding(padding))
+            is Resource.Error -> ErrorRetry(b.message, onRetry = { viewModel.loadBooks() }, modifier = Modifier.padding(padding))
+            is Resource.Success -> {
+                if (b.data.records.isEmpty()) {
+                    EmptyState(icon = Icons.Default.MenuBook, title = "暂无图书", modifier = Modifier.padding(padding))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(b.data.records) { book ->
+                            Card(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Default.MenuBook, null, tint = MaterialTheme.colorScheme.tertiary)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(book.title, style = MaterialTheme.typography.titleMedium)
+                                        if (book.author.isNotBlank()) {
+                                            Text(book.author, style = MaterialTheme.typography.bodySmall)
+                                        }
+                                        Text(formatFileSize(book.fileSize), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    IconButton(onClick = { viewModel.deleteBook(book.id) }) {
+                                        Icon(Icons.Default.Delete, contentDescription = "删除", tint = MaterialTheme.colorScheme.error)
                                     }
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(book.title, style = MaterialTheme.typography.titleSmall, maxLines = 1)
-                                    if (book.author.isNotBlank()) Text(book.author, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("${book.fileType.uppercase()} · ${formatFileSize(book.fileSize)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                IconButton(onClick = { viewModel.deleteBook(book.id) }) {
-                                    Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
-                             
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

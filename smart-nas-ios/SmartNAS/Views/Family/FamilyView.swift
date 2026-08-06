@@ -126,7 +126,7 @@ struct FamilyDetailView: View {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 4) {
                             ForEach(media) { photo in
                                 NavigationLink { PhotoDetailView(photoId: photo.id) } label: {
-                                    PhotoGridItem(photo: photo) {}
+                                    PhotoGridItem(photo: photo, baseURL: appState.baseURL) {}
                                         .allowsHitTesting(false)
                                 }
                             }

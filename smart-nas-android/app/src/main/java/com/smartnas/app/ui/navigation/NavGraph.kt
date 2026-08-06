@@ -109,4 +109,8 @@ fun AppNavGraph(
         composable(Routes.SETTINGS) {
             SettingsScreen(navController = navController)
         }
- 
+        composable(Routes.PROFILE) {
+            ProfileScreen(navController = navController)
+        }
+    }
+}

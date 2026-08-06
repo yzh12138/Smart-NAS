@@ -55,6 +55,7 @@ fun HomeScreen(
         bottomBar = { MainBottomBar(navController) }
     ) { padding ->
         when (val s = stats) {
+            Resource.Idle -> {}
             is Resource.Loading -> LoadingScreen(modifier = Modifier.padding(padding))
             is Resource.Error -> ErrorRetry(s.message, onRetry = { viewModel.loadDashboard() }, modifier = Modifier.padding(padding))
             is Resource.Success -> {
@@ -153,7 +154,7 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             items(recentPhotos) { photo ->
-                                PhotoThumbnail(photo, navController)
+                                PhotoThumbnail(photo, navController, viewModel.baseUrlHolder.baseUrl)
                             }
                         }
                     }
@@ -164,9 +165,8 @@ fun HomeScreen(
 }
 
 @Composable
-fun PhotoThumbnail(photo: Photo, navController: NavController) {
+fun PhotoThumbnail(photo: Photo, navController: NavController, baseUrl: String = "http://10.0.2.2:8080") {
     val context = LocalContext.current
-    val baseUrl = "http://10.0.2.2:8080" // Gateway proxy
     val imageUrl = if (!photo.thumbnailPath.isNullOrBlank()) {
         "$baseUrl/api/photo/${photo.id}/thumb"
     } else {
@@ -215,4 +215,10 @@ fun MainBottomBar(navController: NavController) {
             onClick = { navController.navigate(Routes.FILE) }
         )
         NavigationBarItem(
-            icon =
+            icon = { Icon(Icons.Default.MoreHoriz, contentDescription = null) },
+            label = { Text("更多") },
+            selected = false,
+            onClick = { navController.navigate(Routes.SETTINGS) }
+        )
+    }
+}

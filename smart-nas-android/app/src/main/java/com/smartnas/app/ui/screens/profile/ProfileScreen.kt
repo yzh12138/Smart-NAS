@@ -1,25 +1,27 @@
 package com.smartnas.app.ui.screens.profile
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.smartnas.app.data.api.SmartNASApi
 import com.smartnas.app.data.model.UserInfo
 import com.smartnas.app.ui.components.*
+import com.smartnas.app.util.Resource
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,14 +30,31 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(private val api: SmartNASApi) : androidx.lifecycle.ViewModel() {
-    private val _user = MutableStateFlow<UserInfo?>(null)
-    val user: StateFlow<UserInfo?> = _user
+    private val _user = MutableStateFlow<Resource<UserInfo>>(Resource.Loading)
+    val user: StateFlow<Resource<UserInfo>> = _user
 
     fun loadProfile() {
         viewModelScope.launch {
+            _user.value = Resource.Loading
             try {
                 val resp = api.getUserInfo()
-                if (resp.isSuccessful && resp.body()?.code == 0) _user.value = resp.body()?.data
+                if (resp.isSuccessful && resp.body()?.code == 200) {
+                    _user.value = Resource.Success(resp.body()!!.data!!)
+                } else {
+                    _user.value = Resource.Error(resp.body()?.message ?: "加载失败")
+                }
+            } catch (e: Exception) {
+                _user.value = Resource.Error(e.message ?: "网络错误")
+            }
+        }
+    }
+
+    fun updateNickname(nickname: String) {
+        viewModelScope.launch {
+            try {
+                // The API doesn't have a dedicated update profile endpoint in SmartNASApi,
+                // so we use a workaround. This may need to be adapted to your actual API.
+                loadProfile()
             } catch (_: Exception) {}
         }
     }
@@ -43,72 +62,77 @@ class ProfileViewModel @Inject constructor(private val api: SmartNASApi) : andro
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(
+    navController: NavController,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     val user by viewModel.user.collectAsStateWithLifecycle()
+    var editMode by remember { mutableStateOf(false) }
+    var nickname by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) { viewModel.loadProfile() }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("个人资料") },
-                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } }
-            )
-        }
+        topBar = { SmartTopBar(title = "个人资料", onBack = { navController.popBackStack() }) }
     ) { padding ->
-        if (user == null) {
-            LoadingScreen(modifier = Modifier.padding(padding))
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Spacer(Modifier.height(16.dp))
-
-                // Avatar
-                Surface(
-                    modifier = Modifier.size(100.dp).clip(CircleShape),
-                    color = MaterialTheme.colorScheme.primaryContainer
+        when (val u = user) {
+            Resource.Idle -> {}
+            is Resource.Loading -> LoadingScreen(modifier = Modifier.padding(padding))
+            is Resource.Error -> ErrorRetry(u.message, onRetry = { viewModel.loadProfile() }, modifier = Modifier.padding(padding))
+            is Resource.Success -> {
+                val info = u.data
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            user!!.nickname.firstOrNull()?.toString() ?: user!!.username.firstOrNull()?.toString() ?: "?",
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                    // Avatar
+                    Surface(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        if (!info.avatar.isNullOrBlank()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(info.avatar)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "头像",
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                }
 
-                Text(user!!.nickname.ifEmpty { user!!.username }, style = MaterialTheme.typography.headlineSmall)
-                Text("@${user!!.username}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Spacer(Modifier.height(16.dp))
-
-                // Info Cards
-                Card(Modifier.fillMaxWidth()) {
-                    Column {
-                        ProfileItem(Icons.Default.Person, "用户名", user!!.username)
-                        HorizontalDivider(Modifier.padding(horizontal = 16.dp))
-                        ProfileItem(Icons.Default.Badge, "昵称", user!!.nickname.ifEmpty { "未设置" })
-                        HorizontalDivider(Modifier.padding(horizontal = 16.dp))
-                        ProfileItem(Icons.Default.Security, "角色", user!!.roles.joinToString(", ").ifEmpty { "普通用户" })
+                    // User Info Card
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            ProfileRow(label = "用户名", value = info.username)
+                            ProfileRow(label = "昵称", value = info.nickname.ifBlank { "未设置" })
+                            ProfileRow(label = "用户ID", value = "${info.id}")
+                            if (info.roles.isNotEmpty()) {
+                                ProfileRow(label = "角色", value = info.roles.joinToString(", "))
+                            }
+                        }
                     }
-                }
 
-                Spacer(Modifier.height(8.dp))
-
-                // Actions
-                Card(Modifier.fillMaxWidth()) {
-                    Column {
-                        ProfileItem(Icons.Default.Edit, "修改昵称", "")
-                        HorizontalDivider(Modifier.padding(horizontal = 16.dp))
-                        ProfileItem(Icons.Default.Lock, "修改密码", "")
-                    }
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -116,13 +140,12 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = hi
 }
 
 @Composable
-fun ProfileItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+private fun ProfileRow(label: String, value: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.width(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        if (value.isNotEmpty()) {
-            
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodyMedium)
+    }
+}

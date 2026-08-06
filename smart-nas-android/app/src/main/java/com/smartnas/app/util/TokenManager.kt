@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +30,12 @@ class TokenManager @Inject constructor(
     val username: Flow<String?> = context.dataStore.data.map { it[USERNAME_KEY] }
     val serverUrl: Flow<String?> = context.dataStore.data.map { it[SERVER_URL_KEY] }
 
+    fun getServerUrlSync(): String {
+        return runBlocking {
+            serverUrl.firstOrNull() ?: "http://10.0.2.2:8080"
+        }
+    }
+
     suspend fun saveToken(token: String) {
         context.dataStore.edit { it[TOKEN_KEY] = token }
     }
@@ -41,4 +49,6 @@ class TokenManager @Inject constructor(
     }
 
     suspend fun clearAll() {
-        con
+        context.dataStore.edit { it.clear() }
+    }
+}

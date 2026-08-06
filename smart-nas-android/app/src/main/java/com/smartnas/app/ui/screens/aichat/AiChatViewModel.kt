@@ -3,8 +3,8 @@ package com.smartnas.app.ui.screens.aichat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartnas.app.data.api.SmartNASApi
-import com.smartnas.app.data.model.ChatMessage
-import com.smartnas.app.data.model.Conversation
+import com.smartnas.app.data.model.*
+import com.smartnas.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,68 +22,27 @@ class AiChatViewModel @Inject constructor(
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _isSending = MutableStateFlow(false)
-    val isSending: StateFlow<Boolean> = _isSending
+    private val _sendState = MutableStateFlow<Resource<ChatMessage>>(Resource.Loading)
+    val sendState: StateFlow<Resource<ChatMessage>> = _sendState
 
     fun loadConversations() {
         viewModelScope.launch {
             try {
-                val response = api.getConversations()
-                if (response.isSuccessful && response.body()?.code == 0) {
-                    _conversations.value = response.body()?.data ?: emptyList()
+                val resp = api.getConversations()
+                if (resp.isSuccessful && resp.body()?.code == 200) {
+                    _conversations.value = resp.body()!!.data ?: emptyList()
                 }
             } catch (_: Exception) {}
         }
     }
 
-    fun createConversation(title: String = "新对话", onCreated: (Long) -> Unit = {}) {
+    fun createConversation(title: String? = null) {
         viewModelScope.launch {
             try {
-                val response = api.createConversation(mapOf("title" to title))
-                if (response.isSuccessful && response.body()?.code == 0) {
-                    val conv = response.body()!!.data!!
-                    loadConversations()
-                    onCreated(conv.id)
-                }
+                val body = title?.let { mapOf("title" to it) }
+                api.createConversation(body)
+                loadConversations()
             } catch (_: Exception) {}
-        }
-    }
-
-    fun loadMessages(conversationId: Long) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val response = api.getConversationMessages(conversationId)
-                if (response.isSuccessful && response.body()?.code == 0) {
-                    _messages.value = response.body()?.data ?: emptyList()
-                }
-            } catch (_: Exception) {}
-            _isLoading.value = false
-        }
-    }
-
-    fun sendMessage(conversationId: Long, content: String, imageUrl: String? = null) {
-        viewModelScope.launch {
-            _isSending.value = true
-            try {
-                val body = mutableMapOf<String, Any?>("content" to content)
-                if (imageUrl != null) body["imageUrl"] = imageUrl
-
-                val response = api.sendChatMessage(conversationId, body)
-                if (response.isSuccessful && response.body()?.code == 0) {
-                    val reply = response.body()!!.data
-                    if (reply != null) {
-                        _messages.value = _messages.value + listOf(
-                            ChatMessage(role = "user", content = content, imageUrl = imageUrl),
-                            reply
-                        )
-                    }
-                }
-            } catch (_: Exception) {}
-            _isSending.value = false
         }
     }
 
@@ -91,3 +50,36 @@ class AiChatViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 api.deleteConversation(id)
+                loadConversations()
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun loadMessages(conversationId: Long) {
+        viewModelScope.launch {
+            try {
+                val resp = api.getConversationMessages(conversationId)
+                if (resp.isSuccessful && resp.body()?.code == 200) {
+                    _messages.value = resp.body()!!.data ?: emptyList()
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun sendMessage(conversationId: Long, content: String) {
+        viewModelScope.launch {
+            _sendState.value = Resource.Loading
+            try {
+                val resp = api.sendChatMessage(conversationId, mapOf("content" to content))
+                if (resp.isSuccessful && resp.body()?.code == 200) {
+                    _sendState.value = Resource.Success(resp.body()!!.data!!)
+                    loadMessages(conversationId)
+                } else {
+                    _sendState.value = Resource.Error(resp.body()?.message ?: "发送失败")
+                }
+            } catch (e: Exception) {
+                _sendState.value = Resource.Error(e.message ?: "网络错误")
+            }
+        }
+    }
+}

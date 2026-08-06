@@ -22,7 +22,7 @@ struct SmartNASApp: App {
 
 class AppState: ObservableObject {
     @Published var isLoggedIn: Bool = false
-    @Published var serverURL: String = UserDefaults.standard.string(forKey: "server_url") ?? "http://10.0.2.2:8080"
+    @Published var serverURL: String = UserDefaults.standard.string(forKey: "server_url") ?? "http://localhost:8080"
     @Published var token: String? = KeychainHelper.get("jwt_token")
     @Published var username: String? = UserDefaults.standard.string(forKey: "username")
 

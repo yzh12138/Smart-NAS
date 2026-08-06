@@ -18,7 +18,7 @@ struct PhotoDetailView: View {
                 ScrollView {
                     VStack(spacing: 16) {
                         // Full Image
-                        AsyncImage(url: imageURL(id: photo.id, thumb: false)) { phase in
+                        AsyncImage(url: imageURL(baseURL: appState.baseURL, id: photo.id, thumb: false)) { phase in
                             if let image = phase.image {
                                 image.resizable().aspectRatio(contentMode: .fit)
                             } else {

@@ -16,7 +16,7 @@
           <el-icon class="conv-delete" @click.stop="deleteConv(conv.id)"><Delete /></el-icon>
         </div>
       </el-col>
-      <el-col :span="18" style="display:flex;flex-direction:column">
+      <el-col :span="18" style="display:flex;flex-direction:column;overflow:hidden">
         <div class="prompt-bar">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
             <span style="font-size:12px;color:#999">{{ t('aiChat.prompt') }}:</span>
@@ -388,7 +388,7 @@ async function handleModelChange(modelId) {
 .conv-item:hover, .conv-item.active { background: #ecf5ff; }
 .conv-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .conv-delete { color: #999; margin-left: 8px; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 20px; }
+.chat-messages { flex: 1; min-height: 0; overflow-y: auto; padding: 20px; }
 .chat-empty { text-align: center; color: #999; padding: 60px 0; }
 .message { margin-bottom: 16px; }
 .message.user .message-content { background: #409eff; color: white; margin-left: 20%; border-radius: 12px 12px 0 12px; }

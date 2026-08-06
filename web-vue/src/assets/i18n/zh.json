@@ -183,7 +183,9 @@
     "alreadyMember": "该用户已是家庭成员",
     "sendInvite": "发送邀请",
     "selectFriend": "选择好友",
-    "memberName":"成员名称"
+    "memberName":"成员名称",
+    "selectAll": "全选我的照片",
+    "batchUnshare": "批量取消共享"
   },
   "video": {
     "noVideos": "暂无视频",
@@ -292,6 +294,7 @@
     "commentSubmit": "发表",
     "unshare": "取消共享",
     "confirmUnshare": "确定取消共享这些照片？",
+    "noOwnShared": "只能取消自己共享的照片",
     "startDate": "开始日期",
     "endDate": "结束日期",
     "recommended": "猜你喜欢",
@@ -539,6 +542,8 @@
   },
   "backup": {
     "title": "手机备份（WebDAV）",
+    "serverIp": "服务器IP",
+    "serverIpPlaceholder": "请输入服务器IP地址",
     "address": "服务器地址",
     "username": "用户名",
     "password": "密码",

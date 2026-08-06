@@ -19,7 +19,7 @@ struct RecycleView: View {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 4) {
                         ForEach(photos) { photo in
-                            PhotoGridItem(photo: photo) { selectedPhoto = photo }
+                            PhotoGridItem(photo: photo, baseURL: appState.baseURL) { selectedPhoto = photo }
                         }
                     }
                     .padding()

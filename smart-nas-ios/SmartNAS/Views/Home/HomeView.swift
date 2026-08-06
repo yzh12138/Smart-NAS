@@ -90,7 +90,7 @@ struct HomeView: View {
                                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 4) {
                                         ForEach(photos.prefix(9)) { photo in
                                             NavigationLink { PhotoDetailView(photoId: photo.id) } label: {
-                                                PhotoGridItem(photo: photo) {}
+                                                PhotoGridItem(photo: photo, baseURL: appState.baseURL) {}
                                                     .allowsHitTesting(false)
                                             }
                                         }

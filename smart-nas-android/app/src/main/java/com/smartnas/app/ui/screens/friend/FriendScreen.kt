@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,13 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.smartnas.app.data.api.SmartNASApi
 import com.smartnas.app.data.model.Friend
 import com.smartnas.app.data.model.FriendRequest
 import com.smartnas.app.data.model.UserInfo
 import com.smartnas.app.ui.components.*
+import com.smartnas.app.util.Resource
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +39,7 @@ class FriendViewModel @Inject constructor(private val api: SmartNASApi) : androi
         viewModelScope.launch {
             try {
                 val resp = api.getFriendList()
-                if (resp.isSuccessful && resp.body()?.code == 0) _friends.value = resp.body()?.data ?: emptyList()
+                if (resp.isSuccessful && resp.body()?.code == 200) _friends.value = resp.body()!!.data ?: emptyList()
             } catch (_: Exception) {}
         }
     }
@@ -48,7 +48,7 @@ class FriendViewModel @Inject constructor(private val api: SmartNASApi) : androi
         viewModelScope.launch {
             try {
                 val resp = api.getPendingFriendRequests()
-                if (resp.isSuccessful && resp.body()?.code == 0) _requests.value = resp.body()?.data ?: emptyList()
+                if (resp.isSuccessful && resp.body()?.code == 200) _requests.value = resp.body()!!.data ?: emptyList()
             } catch (_: Exception) {}
         }
     }
@@ -57,14 +57,14 @@ class FriendViewModel @Inject constructor(private val api: SmartNASApi) : androi
         viewModelScope.launch {
             try {
                 val resp = api.searchUsers(keyword)
-                if (resp.isSuccessful && resp.body()?.code == 0) _searchResults.value = resp.body()?.data ?: emptyList()
+                if (resp.isSuccessful && resp.body()?.code == 200) _searchResults.value = resp.body()!!.data ?: emptyList()
             } catch (_: Exception) {}
         }
     }
 
     fun sendRequest(friendId: Long) {
         viewModelScope.launch {
-            try { api.sendFriendRequest(friendId); _searchResults.value = emptyList() } catch (_: Exception) {}
+            try { api.sendFriendRequest(friendId) } catch (_: Exception) {}
         }
     }
 
@@ -89,75 +89,68 @@ class FriendViewModel @Inject constructor(private val api: SmartNASApi) : androi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendScreen(navController: NavController, viewModel: FriendViewModel = hiltViewModel()) {
+fun FriendScreen(
+    navController: NavController,
+    viewModel: FriendViewModel = hiltViewModel()
+) {
     val friends by viewModel.friends.collectAsStateWithLifecycle()
     val requests by viewModel.requests.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
-    var tab by remember { mutableIntStateOf(0) }
-    var searchQuery by remember { mutableStateOf("") }
+    var searchKeyword by remember { mutableStateOf("") }
+    var tabIndex by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) { viewModel.loadFriends(); viewModel.loadRequests() }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("好友管理") },
-                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } }
-            )
-        }
+        topBar = { SmartTopBar(title = "好友管理", onBack = { navController.popBackStack() }) }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            TabRow(selectedTabIndex = tab) {
-                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("好友列表") })
-                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("请求 (${requests.size})") })
-                Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("搜索") })
+            TabRow(selectedTabIndex = tabIndex) {
+                Tab(selected = tabIndex == 0, onClick = { tabIndex = 0 }, text = { Text("好友列表") })
+                Tab(selected = tabIndex == 1, onClick = { tabIndex = 1 }, text = { Text("请求 (${requests.size})") })
+                Tab(selected = tabIndex == 2, onClick = { tabIndex = 2 }, text = { Text("搜索") })
             }
-
-            when (tab) {
-                0 -> LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(friends) { f ->
-                        Card(Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Person, null, modifier = Modifier.size(36.dp), tint = MaterialTheme.colorScheme.primary)
-                                Spacer(Modifier.width(12.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(f.friendNickname.ifEmpty { f.friendName }, style = MaterialTheme.typography.bodyMedium)
-                                }
-                                IconButton(onClick = { viewModel.removeFriend(f.friendId) }) {
+            when (tabIndex) {
+                0 -> LazyColumn(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(friends) { friend ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(friend.friendNickname.ifBlank { friend.friendName }, style = MaterialTheme.typography.bodyLarge)
+                                IconButton(onClick = { viewModel.removeFriend(friend.friendId) }) {
                                     Icon(Icons.Default.PersonRemove, null, tint = MaterialTheme.colorScheme.error)
                                 }
                             }
                         }
                     }
                 }
-                1 -> LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(requests) { r ->
-                        Card(Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(r.fromNickname.ifEmpty { r.fromUsername }, style = MaterialTheme.typography.bodyMedium)
-                                    Text(r.createTime, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                1 -> LazyColumn(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(requests) { req ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(req.fromNickname.ifBlank { req.fromUsername }, modifier = Modifier.weight(1f))
+                                Row {
+                                    IconButton(onClick = { viewModel.acceptRequest(req.id) }) { Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary) }
+                                    IconButton(onClick = { viewModel.rejectRequest(req.id) }) { Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error) }
                                 }
-                                IconButton(onClick = { viewModel.acceptRequest(r.id) }) { Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary) }
-                                IconButton(onClick = { viewModel.rejectRequest(r.id) }) { Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error) }
                             }
                         }
                     }
                 }
-                2 -> Column(modifier = Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = searchQuery, onValueChange = { searchQuery = it },
-                        label = { Text("搜索用户") }, singleLine = true,
-                        trailingIcon = { IconButton(onClick = { viewModel.searchUsers(searchQuery) }) { Icon(Icons.Default.Search, null) } },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(searchResults) { user ->
-                            Card(Modifier.fillMaxWidth()) {
-                                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(user.nickname.ifEmpty { user.username }, style = MaterialTheme.typography.bodyMedium)
-                                        Text("@${user.username}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                    IconButton(onClick = { viewModel.sendRequest(user.id) }) { Icon(Icons.Default.PersonAdd, null, tint = MaterialTheme.colorScheme.primary) }
+                2 -> Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(value = searchKeyword, onValueChange = { searchKeyword = it }, label = { Text("搜索用户") }, singleLine = true, modifier = Modifier.weight(1f))
+                        Button(onClick = { viewModel.searchUsers(searchKeyword) }) { Text("搜索") }
+                    }
+                    searchResults.forEach { user ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(user.nickname.ifBlank { user.username }, modifier = Modifier.weight(1f))
+                                IconButton(onClick = { viewModel.sendRequest(user.id) }) { Icon(Icons.Default.PersonAdd, null, tint = MaterialTheme.colorScheme.primary) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

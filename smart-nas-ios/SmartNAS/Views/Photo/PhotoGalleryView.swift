@@ -6,7 +6,7 @@ struct PhotoGalleryView: View {
     @State private var photos: [Photo] = []
     @State private var tags: [Tag] = []
     @State private var isLoading = true
-    @State private var selectedTag: String? = nil
+    @State private var selectedTagId: Int? = nil
     @State private var searchText = ""
 
     let columns = [GridItem(.adaptive(minimum: 110), spacing: 3)]
@@ -24,10 +24,10 @@ struct PhotoGalleryView: View {
                         if !tags.isEmpty {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 8) {
-                                    TagChip(name: "全部", isSelected: selectedTag == nil) { selectedTag = nil }
+                                    TagChip(name: "全部", isSelected: selectedTagId == nil) { selectedTagId = nil }
                                     ForEach(tags.prefix(6)) { tag in
-                                        TagChip(name: tag.name, isSelected: selectedTag == tag.name) {
-                                            selectedTag = selectedTag == tag.name ? nil : tag.name
+                                        TagChip(name: tag.name, isSelected: selectedTagId == tag.id) {
+                                            selectedTagId = selectedTagId == tag.id ? nil : tag.id
                                         }
                                     }
                                 }
@@ -39,7 +39,7 @@ struct PhotoGalleryView: View {
                         LazyVGrid(columns: columns, spacing: 3) {
                             ForEach(photos) { photo in
                                 NavigationLink { PhotoDetailView(photoId: photo.id) } label: {
-                                    PhotoGridItem(photo: photo) {}
+                                    PhotoGridItem(photo: photo, baseURL: appState.baseURL) {}
                                         .allowsHitTesting(false)
                                 }
                             }
@@ -59,7 +59,7 @@ struct PhotoGalleryView: View {
                     }
                 }
             }
-            .onChange(of: selectedTag) { _, _ in
+            .onChange(of: selectedTagId) { _, _ in
                 Task { await loadPhotos() }
             }
             .task {
@@ -72,7 +72,7 @@ struct PhotoGalleryView: View {
     private func loadPhotos() async {
         guard let token = appState.token else { return }
         do {
-            let result = try await APIService.shared.getPhotoList(token: token, size: 100, tag: selectedTag)
+            let result = try await APIService.shared.getPhotoList(token: token, size: 100, tagId: selectedTagId)
             await MainActor.run {
                 self.photos = result.records
                 self.isLoading = false

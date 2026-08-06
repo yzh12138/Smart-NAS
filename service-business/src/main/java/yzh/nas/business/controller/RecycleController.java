@@ -21,6 +21,14 @@ public class RecycleController {
         this.photoService = photoService;
     }
 
+    @GetMapping("/days")
+    public ResponseEntity<?> days(@RequestParam(defaultValue = "1") int page,
+                                  @RequestParam(defaultValue = "20") int size,
+                                  HttpServletRequest request) {
+        Long userId = Long.parseLong(request.getHeader("X-User-Id"));
+        return ResponseEntity.ok(Map.of("code", 200, "data", recycleService.getRecycleList(userId, page, size)));
+    }
+
     @GetMapping("/list")
     public ResponseEntity<?> list(@RequestParam(defaultValue = "1") int page,
                                    @RequestParam(defaultValue = "20") int size,

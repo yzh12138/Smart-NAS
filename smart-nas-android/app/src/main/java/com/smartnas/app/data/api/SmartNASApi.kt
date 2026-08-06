@@ -1,6 +1,7 @@
 package com.smartnas.app.data.api
 
 import com.smartnas.app.data.model.*
+import com.smartnas.app.data.model.Tag as PhotoTag
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -23,21 +24,21 @@ interface SmartNASApi {
     @POST("/api/photo/upload")
     suspend fun uploadPhotos(
         @Part files: List<MultipartBody.Part>,
-        @Part("tags") tags: RequestBody? = null,
+        @Part("newTags") newTags: RequestBody? = null,
         @Part("city") city: RequestBody? = null,
-        @Part("aiEnabled") aiEnabled: RequestBody? = null
+        @Part("province") province: RequestBody? = null,
+        @Part("aiTag") aiTag: RequestBody? = null
     ): Response<ApiResult<List<Photo>>>
 
     @GET("/api/photo/list")
     suspend fun getPhotoList(
         @Query("page") page: Int = 1,
         @Query("size") size: Int = 20,
-        @Query("tag") tag: String? = null,
+        @Query("tagId") tagId: Long? = null,
         @Query("city") city: String? = null,
-        @Query("keyword") keyword: String? = null,
         @Query("startDate") startDate: String? = null,
         @Query("endDate") endDate: String? = null,
-        @Query("mediaType") mediaType: Int? = null
+        @Query("mediaType") mediaType: String? = null
     ): Response<ApiResult<PageResult<Photo>>>
 
     @GET("/api/photo/{id}")
@@ -96,10 +97,10 @@ interface SmartNASApi {
 
     // ==================== Tags ====================
     @GET("/api/tag/list")
-    suspend fun getTagList(): Response<ApiResult<List<Tag>>>
+    suspend fun getTagList(): Response<ApiResult<List<PhotoTag>>>
 
     @POST("/api/tag")
-    suspend fun createTag(@Body body: Map<String, String>): Response<ApiResult<Tag>>
+    suspend fun createTag(@Body body: Map<String, String>): Response<ApiResult<PhotoTag>>
 
     @PUT("/api/tag/{id}")
     suspend fun updateTag(@Path("id") id: Long, @Body body: Map<String, String>): Response<ApiResult<Unit>>
@@ -281,4 +282,5 @@ interface SmartNASApi {
     suspend fun createCity(@Body body: Map<String, Any>): Response<ApiResult<CityStat>>
 
     @DELETE("/api/city/{id}")
-    suspend fun deleteCity(@Path("id") id: Long): Response<ApiRes
+    suspend fun deleteCity(@Path("id") id: Long): Response<ApiResult<Unit>>
+}

@@ -17,7 +17,7 @@ class LoginViewModel @Inject constructor(
 
     val isLoggedIn: Flow<Boolean> = authRepository.isLoggedIn
 
-    private val _loginState = MutableStateFlow<Resource<UserInfo>>(Resource.Loading)
+    private val _loginState = MutableStateFlow<Resource<UserInfo>>(Resource.Idle)
     val loginState: StateFlow<Resource<UserInfo>> = _loginState
 
     private val _serverUrl = MutableStateFlow("")
@@ -37,12 +37,14 @@ class LoginViewModel @Inject constructor(
 
     fun login(serverUrl: String, username: String, password: String) {
         viewModelScope.launch {
-            authRepository.login(serverUrl, username, password).collect {
-                _loginState.value = it
-            }
+            _loginState.value = Resource.Loading
+            _loginState.value = authRepository.login(serverUrl, username, password)
         }
     }
 
     fun logout() {
         viewModelScope.launch {
-       
+            authRepository.logout()
+        }
+    }
+}

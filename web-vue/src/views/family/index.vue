@@ -29,19 +29,31 @@
               </div>
             </div>
           </template>
-          <div class="media-grid" v-if="mediaList.length > 0">
-            <div v-for="photo in mediaList" :key="photo.id" class="media-item">
-              <div class="media-thumb-wrap">
-                <img :src="`/api/photo/${photo.id}/thumb`" class="media-thumb" />
-                <div v-if="photo.mediaType === 'video'" class="media-play-icon">
-                  <el-icon :size="24"><VideoPlay /></el-icon>
+          <div v-if="mediaList.length > 0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px" v-if="hasOwnPhotos">
+              <el-checkbox v-model="selectAll" :indeterminate="isIndeterminate" @change="handleSelectAll">{{ t('family.selectAll') || '全选我的照片' }}</el-checkbox>
+              <el-button size="small" type="danger" :disabled="selectedPhotoIds.length === 0" @click="handleBatchUnshare">
+                {{ t('family.batchUnshare') || '批量取消共享' }} ({{ selectedPhotoIds.length }})
+              </el-button>
+            </div>
+            <div class="media-grid">
+              <div v-for="photo in mediaList" :key="photo.id" class="media-item" :class="{ 'is-selected': selectedPhotoIds.includes(photo.id) }">
+                <div class="media-thumb-wrap">
+                  <img :src="`/api/photo/${photo.id}/thumb`" class="media-thumb" />
+                  <div v-if="photo.mediaType === 'video'" class="media-play-icon">
+                    <el-icon :size="24"><VideoPlay /></el-icon>
+                  </div>
+                  <div class="media-unshare" v-if="photo.userId === currentUserId" @click.stop="handleUnshare(photo.id)">
+                    <el-icon><Close /></el-icon>
+                  </div>
+                  <div class="media-select" v-if="photo.userId === currentUserId" @click.stop="toggleSelect(photo.id)">
+                    <el-icon v-if="selectedPhotoIds.includes(photo.id)" color="#409eff" :size="20"><CircleCheck /></el-icon>
+                    <el-icon v-else :size="20" color="#c0c4cc"><CircleCheck /></el-icon>
+                  </div>
                 </div>
-                <div class="media-unshare" v-if="photo.userId === currentUserId" @click.stop="handleUnshare(photo.id)">
-                  <el-icon><Close /></el-icon>
-                </div>
+                <div class="media-name">{{ photo.originalName }}</div>
+                <div class="media-type">{{ photo.mediaType === 'video' ? t('mediaType.video') : t('mediaType.photo') }}</div>
               </div>
-              <div class="media-name">{{ photo.originalName }}</div>
-              <div class="media-type">{{ photo.mediaType === 'video' ? t('mediaType.video') : t('mediaType.photo') }}</div>
             </div>
           </div>
           <el-empty v-else :description="t('family.noMedia')" />
@@ -93,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { getMyFamilies, getFamilyMedia, shareToFamily, getPhotoList, searchFamilyByCode, joinFamily, batchUnshareFromFamily } from '../../api'
 import { useI18n } from '../../utils/i18n'
 import { ElMessage } from 'element-plus'
@@ -105,6 +117,15 @@ const mediaList = ref([])
 const myMedia = ref([])
 const shareDialogVisible = ref(false)
 const currentUserId = ref(null)
+const selectedPhotoIds = ref([])
+
+const ownPhotoIds = computed(() => mediaList.value.filter(p => p.userId === currentUserId.value).map(p => p.id))
+const hasOwnPhotos = computed(() => ownPhotoIds.value.length > 0)
+const selectAll = computed({
+  get: () => ownPhotoIds.value.length > 0 && selectedPhotoIds.value.length === ownPhotoIds.value.length,
+  set: () => {}
+})
+const isIndeterminate = computed(() => selectedPhotoIds.value.length > 0 && selectedPhotoIds.value.length < ownPhotoIds.value.length)
 
 // 加入家庭
 const joinDialogVisible = ref(false)
@@ -138,6 +159,7 @@ watch(joinCode, async (val) => {
 
 async function selectFamily(f) {
   selectedFamily.value = f
+  selectedPhotoIds.value = []
   const res = await getFamilyMedia(f.id)
   if (res.code === 200) mediaList.value = res.data
 }
@@ -168,7 +190,37 @@ async function handleJoinFamily() {
 async function handleUnshare(photoId) {
   await batchUnshareFromFamily([photoId])
   ElMessage.success(t('common.success'))
+  selectedPhotoIds.value = selectedPhotoIds.value.filter(id => id !== photoId)
   selectFamily(selectedFamily.value)
+}
+
+function toggleSelect(photoId) {
+  const idx = selectedPhotoIds.value.indexOf(photoId)
+  if (idx >= 0) {
+    selectedPhotoIds.value.splice(idx, 1)
+  } else {
+    selectedPhotoIds.value.push(photoId)
+  }
+}
+
+function handleSelectAll(val) {
+  if (val) {
+    selectedPhotoIds.value = [...ownPhotoIds.value]
+  } else {
+    selectedPhotoIds.value = []
+  }
+}
+
+async function handleBatchUnshare() {
+  if (selectedPhotoIds.value.length === 0) return
+  try {
+    await batchUnshareFromFamily(selectedPhotoIds.value)
+    ElMessage.success(t('common.success'))
+    selectedPhotoIds.value = []
+    selectFamily(selectedFamily.value)
+  } catch {
+    ElMessage.error(t('common.error') || '操作失败')
+  }
 }
 </script>
 
@@ -184,4 +236,7 @@ async function handleUnshare(photoId) {
 .media-type { padding: 0 8px 6px; font-size: 11px; color: #999; }
 .media-unshare { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(245,108,108,0.8); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; font-size: 12px; }
 .media-item:hover .media-unshare { opacity: 1; }
+.media-select { position: absolute; top: 4px; left: 4px; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+.media-item:hover .media-select, .media-item.is-selected .media-select { opacity: 1; }
+.media-item.is-selected { outline: 2px solid #409eff; border-radius: 8px; }
 </style>

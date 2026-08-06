@@ -182,7 +182,9 @@
     "alreadyMember": "This user is already a member",
     "sendInvite": "Send Invite",
     "selectFriend": "Select Friend",
-    "memberName":"member name"
+    "memberName":"member name",
+    "selectAll": "Select All My Photos",
+    "batchUnshare": "Batch Unshare"
   },
   "video": {
     "noVideos": "No videos yet",
@@ -291,6 +293,7 @@
     "commentSubmit": "Post",
     "unshare": "Unshare",
     "confirmUnshare": "Unshare these photos?",
+    "noOwnShared": "You can only unshare your own photos",
     "startDate": "Start Date",
     "endDate": "End Date",
     "recommended": "Recommended for You",
@@ -537,6 +540,8 @@
   },
   "backup": {
     "title": "Phone Backup (WebDAV)",
+    "serverIp": "Server IP",
+    "serverIpPlaceholder": "Enter server IP address",
     "address": "Server Address",
     "username": "Username",
     "password": "Password",

@@ -21,7 +21,6 @@ extension View {
     func cardStyle() -> some View { modifier(CardStyle()) }
 }
 
-func imageURL(id: Int, thumb: Bool = true) -> URL? {
-    let state = AppState()
+func imageURL(baseURL: String, id: Int, thumb: Bool = true) -> URL? {
     let path = thumb ? "/api/photo/\(id)/thumb" : "/api/photo/\(id)/original"
-    return URL(string: "\(
+    return URL(string: "\(baseURL)\(path)")

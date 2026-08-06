@@ -241,11 +241,15 @@ public class PhotoService {
         // 先清除旧的 AI 标签，再插入用户选择的标签
         jdbcTemplate.update("DELETE FROM photo_tag WHERE photo_id = ? AND tag_source = 2", photoId);
 
-        // 保存用户选择的标签
+        // 保存用户选择的标签（过滤掉与城市/省份同名的标签）
         if (selectedTags != null) {
             for (String tagName : selectedTags) {
                 tagName = tagName.trim();
                 if (!tagName.isEmpty()) {
+                    // 过滤掉与城市/省份同名的标签，避免标签和城市混在一起
+                    if (tagName.equals(city) || tagName.equals(province)) {
+                        continue;
+                    }
                     Tag tag = getOrCreateTag(tagName, null);
                     insertPhotoTag(photoId, tag.getId(), 2); // 2=AI建议用户确认
                 }
@@ -297,6 +301,7 @@ public class PhotoService {
             } else {
                 p.setCreateTime(null);
             }
+            p.setSharedBy(row.get("shared_by") != null ? ((Number) row.get("shared_by")).longValue() : null);
             photos.add(p);
         }
         return photos;
@@ -397,6 +402,10 @@ public class PhotoService {
             for (String tagName : approvedTags) {
                 tagName = tagName.trim();
                 if (!tagName.isEmpty()) {
+                    // 过滤掉与城市/省份同名的标签，避免标签和城市混在一起
+                    if (tagName.equals(city) || tagName.equals(province)) {
+                        continue;
+                    }
                     Tag tag = getOrCreateTag(tagName, null);
                     insertPhotoTag(photoId, tag.getId(), 2);
                 }

@@ -20,7 +20,7 @@ struct VideoView: View {
                             NavigationLink { PhotoDetailView(photoId: video.id) } label: {
                                 VStack(alignment: .leading) {
                                     ZStack {
-                                        AsyncImage(url: imageURL(id: video.id)) { phase in
+                                        AsyncImage(url: imageURL(baseURL: appState.baseURL, id: video.id)) { phase in
                                             if let image = phase.image {
                                                 image.resizable().aspectRatio(16/9, contentMode: .fill)
                                             } else {

@@ -23,7 +23,7 @@ struct FaceView: View {
                         LazyVGrid(columns: columns, spacing: 4) {
                             ForEach(photos) { photo in
                                 NavigationLink { PhotoDetailView(photoId: photo.id) } label: {
-                                    PhotoGridItem(photo: photo) {}
+                                    PhotoGridItem(photo: photo, baseURL: appState.baseURL) {}
                                         .allowsHitTesting(false)
                                 }
                             }

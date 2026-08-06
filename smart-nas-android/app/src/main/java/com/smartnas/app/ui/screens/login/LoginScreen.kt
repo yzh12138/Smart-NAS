@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,7 @@ fun LoginScreen(
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
     val savedServerUrl by viewModel.serverUrl.collectAsStateWithLifecycle()
 
-    var serverUrl by remember(savedServerUrl) { mutableStateOf(savedServerUrl.ifEmpty { "http://" }) }
+    var serverUrl by remember(savedServerUrl) { mutableStateOf(savedServerUrl.ifEmpty { "http://10.0.2.2:8080" }) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -178,4 +179,23 @@ fun LoginScreen(
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 strokeWidth = 2.dp
                             )
-             
+                        } else {
+                            Text("登录", fontSize = 16.sp)
+                        }
+                    }
+
+                    // 默认服务器地址提示
+                    if (serverUrl.isEmpty() || serverUrl == "http://") {
+                        Text(
+                            "点击「服务器设置」输入服务器地址",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

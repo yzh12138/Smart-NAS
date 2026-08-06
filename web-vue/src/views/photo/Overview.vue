@@ -110,15 +110,7 @@
                 >
               </el-popconfirm>
             </template>
-            <template v-if="selectedIds.length > 0 && photoTab === 'shared'">
-              <el-button
-                type="success"
-                size="small"
-                @click="showBatchShareDialog"
-                >{{ t("family.shareToFamily") }} ({{
-                  selectedIds.length
-                }})</el-button
-              >
+            <template v-if="selectedIds.length > 0 && photoTab === 'shared' && hasOwnSharedSelected">
               <el-popconfirm
                 :title="t('overview.confirmUnshare')"
                 @confirm="batchUnshare"
@@ -126,7 +118,7 @@
                 <template #reference
                   ><el-button type="warning" size="small"
                     >{{ t("overview.unshare") }} ({{
-                      selectedIds.length
+                      selectedIds.filter(id => ownSharedPhotoIds.includes(id)).length
                     }})</el-button
                   ></template
                 >
@@ -153,10 +145,10 @@
           v-for="photo in photos"
           :key="photo.id"
           class="photo-item"
-          :class="{ selected: selectedIds.includes(photo.id) }"
+          :class="{ selected: selectedIds.includes(photo.id), 'not-own-shared': photoTab === 'shared' && photo.sharedBy !== currentUserId }"
           @click="handlePhotoClick(photo, $event)"
         >
-          <div v-if="selectMode" class="select-check">
+          <div v-if="selectMode && (photoTab !== 'shared' || photo.sharedBy === currentUserId)" class="select-check">
             <el-checkbox
               :model-value="selectedIds.includes(photo.id)"
               @click.stop
@@ -477,6 +469,7 @@ const recentTagIds = ref(
   JSON.parse(localStorage.getItem("recentTagIds") || "[]"),
 );
 const dateRange = ref(null);
+const currentUserId = ref(null);
 
 // 留言相关
 const comments = ref([]);
@@ -517,7 +510,24 @@ const containerStyle = computed(() => {
   }
 });
 
+// 判断选中的照片中是否有自己共享的
+const hasOwnSharedSelected = computed(() => {
+  if (photoTab.value !== 'shared' || !currentUserId.value) return false;
+  return selectedIds.value.some(id => {
+    const photo = photos.value.find(p => p.id === id);
+    return photo && photo.sharedBy === currentUserId.value;
+  });
+});
+
+// 获取自己共享的照片ID列表
+const ownSharedPhotoIds = computed(() => {
+  if (photoTab.value !== 'shared' || !currentUserId.value) return [];
+  return photos.value.filter(p => p.sharedBy === currentUserId.value).map(p => p.id);
+});
+
 onMounted(async () => {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  currentUserId.value = userInfo.userId || null;
   const route = useRoute();
   if (route.query.city) {
     searchKeyword.value = route.query.city;
@@ -699,7 +709,13 @@ async function confirmShare() {
 }
 
 async function batchUnshare() {
-  await batchUnshareFromFamily([...selectedIds.value]);
+  // 只取消自己共享的照片
+  const ownIds = selectedIds.value.filter(id => ownSharedPhotoIds.value.includes(id));
+  if (ownIds.length === 0) {
+    ElMessage.warning(t("overview.noOwnShared"));
+    return;
+  }
+  await batchUnshareFromFamily(ownIds);
   ElMessage.success(t("common.success"));
   selectedIds.value = [];
   selectMode.value = false;
@@ -845,6 +861,19 @@ function nextPhoto() {
 }
 .photo-item.selected {
   border-color: #409eff;
+}
+.photo-item.not-own-shared {
+  opacity: 0.6;
+}
+.photo-item.not-own-shared::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
 }
 .select-check {
   position: absolute;

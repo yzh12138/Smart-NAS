@@ -41,11 +41,12 @@ struct EmptyStateView: View {
 
 struct PhotoGridItem: View {
     let photo: Photo
+    let baseURL: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            AsyncImage(url: imageURL(id: photo.id)) { phase in
+            AsyncImage(url: imageURL(baseURL: baseURL, id: photo.id)) { phase in
                 switch phase {
                 case .success(let image):
                     image.resizable().aspectRatio(1, contentMode: .fill)

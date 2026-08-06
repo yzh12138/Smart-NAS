@@ -13,16 +13,26 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import com.smartnas.app.util.BaseUrlHolder
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class RetrofitHolder @Inject constructor(
     private val tokenManager: TokenManager,
-    private val cache: Cache
+    private val cache: Cache,
+    private val baseUrlHolder: BaseUrlHolder
 ) {
     private val _api = MutableStateFlow<SmartNASApi?>(null)
     val api: StateFlow<SmartNASApi?> = _api
+
+    @Volatile
+    var currentApi: SmartNASApi? = null
+        private set
+
+    @Volatile
+    var currentBaseUrl: String = ""
+        private set
 
     init {
         val baseUrl = runBlocking {
@@ -34,6 +44,8 @@ class RetrofitHolder @Inject constructor(
 
     fun rebuild(baseUrl: String) {
         val normalizedUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+        currentBaseUrl = normalizedUrl.removeSuffix("/")
+        baseUrlHolder.baseUrl = currentBaseUrl
 
         val authInterceptor = Interceptor { chain ->
             val token = runBlocking { tokenManager.token.firstOrNull() }
@@ -65,4 +77,8 @@ class RetrofitHolder @Inject constructor(
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-   
+        val newApi = retrofit.create(SmartNASApi::class.java)
+        _api.value = newApi
+        currentApi = newApi
+    }
+}

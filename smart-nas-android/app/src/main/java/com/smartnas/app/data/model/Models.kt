@@ -4,14 +4,21 @@ import com.google.gson.annotations.SerializedName
 
 // ========== Auth ==========
 data class LoginRequest(val username: String, val password: String)
-data class LoginResponse(val token: String, val user: UserInfo? = null)
+data class LoginResponse(
+    val token: String = "",
+    @SerializedName("userId") val userId: Long = 0,
+    val username: String = "",
+    val nickname: String = ""
+)
 data class UserInfo(
-    val id: Long = 0,
+    @SerializedName("userId") val id: Long = 0,
     val username: String = "",
     val nickname: String = "",
     val avatar: String? = null,
     val status: Int = 1,
-    val roles: List<String> = emptyList()
+    val familyRole: String? = null,
+    val roles: List<Any> = emptyList(),
+    val permissions: List<Any> = emptyList()
 )
 
 // ========== Common ==========
@@ -24,7 +31,7 @@ data class PageResult<T>(
 )
 
 data class ApiResult<T>(
-    val code: Int = 0,
+    val code: Int = 200,
     val message: String = "",
     val data: T? = null
 )
@@ -126,11 +133,13 @@ data class Book(
 // ========== Family ==========
 data class Family(
     val id: Long = 0,
-    val name: String = "",
-    val inviteCode: String = "",
+    @SerializedName("familyName") val name: String = "",
+    @SerializedName("familyCode") val inviteCode: String = "",
     val ownerId: Long = 0,
     val ownerName: String = "",
     val memberCount: Int = 0,
+    val description: String? = null,
+    val status: Int = 1,
     val createTime: String = ""
 )
 
@@ -187,4 +196,8 @@ data class DashboardStats(
     val cityStats: List<CityStat> = emptyList()
 )
 
-data class AiModelConf
+data class AiModelConf(
+    val model: String = "",
+    val apiKey: String = "",
+    val baseUrl: String = ""
+)

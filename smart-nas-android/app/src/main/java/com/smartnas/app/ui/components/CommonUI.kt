@@ -124,4 +124,8 @@ fun ErrorRetry(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(message, color = MaterialTheme.colo
+        Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry) { Text("重试") }
+    }
+}

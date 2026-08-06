@@ -20,9 +20,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.smartnas.app.data.model.Photo
-import com.smartnas.app.data.model.Tag
 import com.smartnas.app.ui.components.*
+import com.smartnas.app.ui.screens.home.MainBottomBar
 import com.smartnas.app.ui.navigation.Routes
 import com.smartnas.app.util.Resource
 
@@ -34,76 +33,61 @@ fun PhotoGalleryScreen(
 ) {
     val photos by viewModel.photos.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    var selectedTag by remember { mutableStateOf<String?>(null) }
-    var showSearch by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
+    var keyword by remember { mutableStateOf("") }
+    var selectedTagId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadPhotos()
         viewModel.loadTags()
     }
 
-    LaunchedEffect(selectedTag) {
-        viewModel.loadPhotos(tag = selectedTag)
-    }
-
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("照片总览") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            SmartTopBar(title = "照片总览", onBack = { navController.popBackStack() })
+        },
+        bottomBar = { MainBottomBar(navController) }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
+            // Search Bar
+            OutlinedTextField(
+                value = keyword,
+                onValueChange = { keyword = it },
+                placeholder = { Text("搜索照片...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        if (keyword.isNotBlank()) viewModel.searchPhotos(keyword)
+                        else viewModel.loadPhotos()
+                    }) {
+                        Icon(Icons.Default.Send, contentDescription = "搜索")
                     }
                 },
-                actions = {
-                    IconButton(onClick = { showSearch = !showSearch }) {
-                        Icon(Icons.Default.Search, contentDescription = "搜索")
-                    }
-                    IconButton(onClick = { navController.navigate(Routes.PHOTO_UPLOAD) }) {
-                        Icon(Icons.Default.Add, contentDescription = "上传")
-                    }
-                }
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // Search Bar
-            if (showSearch) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = {
-                        searchQuery = it
-                        if (it.isNotEmpty()) viewModel.searchPhotos(it) else viewModel.loadPhotos()
-                    },
-                    placeholder = { Text("搜索照片...") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    trailingIcon = {
-                        IconButton(onClick = { searchQuery = ""; showSearch = false; viewModel.loadPhotos() }) {
-                            Icon(Icons.Default.Close, contentDescription = null)
-                        }
-                    },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
 
-            // Tag Filter Chips
+            // Tag Chips
             if (tags.isNotEmpty()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FilterChip(
-                        selected = selectedTag == null,
-                        onClick = { selectedTag = null },
+                        selected = selectedTagId == null,
+                        onClick = { selectedTagId = null; viewModel.loadPhotos() },
                         label = { Text("全部") }
                     )
                     tags.take(4).forEach { tag ->
                         FilterChip(
-                            selected = selectedTag == tag.name,
-                            onClick = { selectedTag = if (selectedTag == tag.name) null else tag.name },
+                            selected = selectedTagId == tag.id,
+                            onClick = {
+                                selectedTagId = if (selectedTagId == tag.id) null else tag.id
+                                viewModel.loadPhotos(tagId = selectedTagId)
+                            },
                             label = { Text(tag.name) }
                         )
                     }
@@ -111,19 +95,32 @@ fun PhotoGalleryScreen(
             }
 
             // Photo Grid
-            when {
-                isLoading -> LoadingScreen()
-                photos.isEmpty() -> EmptyState(Icons.Default.Photo, "暂无照片", "点击右上角 + 上传照片")
-                else -> {
+            when (val p = photos) {
+                Resource.Idle -> {}
+                is Resource.Loading -> LoadingScreen()
+                is Resource.Error -> ErrorRetry(p.message, onRetry = { viewModel.refresh() })
+                is Resource.Success -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                        modifier = Modifier.padding(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        items(photos) { photo ->
-                            PhotoGridItem(photo, navController)
+                        items(p.data.records) { photo ->
+                            val context = LocalContext.current
+                            val imageUrl = viewModel.baseUrlHolder.photoThumbUrl(photo.id)
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(imageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = photo.name,
+                                modifier = Modifier
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .clickable { navController.navigate(Routes.photoDetail(photo.id)) },
+                                contentScale = ContentScale.Crop
+                            )
                         }
                     }
                 }
@@ -131,23 +128,3 @@ fun PhotoGalleryScreen(
         }
     }
 }
-
-@Composable
-fun PhotoGridItem(photo: Photo, navController: NavController) {
-    val context = LocalContext.current
-    val baseUrl = "http://10.0.2.2:8080"
-    val imageUrl = if (!photo.thumbnailPath.isNullOrBlank()) {
-        "$baseUrl/api/photo/${photo.id}/thumb"
-    } else {
-        "$baseUrl/api/photo/${photo.id}/original"
-    }
-
-    AsyncImage(
-        model = ImageRequest.Builder(context)
-            .data(imageUrl)
-            .crossfade(true)
-            .build(),
-        contentDescription = photo.name,
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clip(Roun

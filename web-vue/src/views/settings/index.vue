@@ -96,6 +96,10 @@
         <div class="backup-section">
           <div class="backup-info">
             <div class="backup-row">
+              <span class="backup-label">{{ t('backup.serverIp') }}:</span>
+              <el-input v-model="serverIp" :placeholder="t('backup.serverIpPlaceholder')" style="width:200px" size="small" />
+            </div>
+            <div class="backup-row">
               <span class="backup-label">{{ t('backup.address') }}:</span>
               <el-tag type="info" size="small" style="font-family:monospace">{{ webdavUrl }}</el-tag>
               <el-button size="small" text @click="copyUrl">{{ t('backup.copy') }}</el-button>
@@ -238,9 +242,14 @@ const apiUrlPlaceholder = computed(() => {
 // 备份相关
 const currentUser = ref('admin')
 const qrCodeRef = ref(null)
+const serverIp = ref(localStorage.getItem('serverIp') || (window.location.hostname === 'localhost' ? '' : window.location.hostname))
 const webdavUrl = computed(() => {
-  const host = window.location.hostname
+  const host = serverIp.value || window.location.hostname
   return `http://${host}:8081/webdav/`
+})
+
+watch(serverIp, (val) => {
+  localStorage.setItem('serverIp', val)
 })
 
 onMounted(() => {

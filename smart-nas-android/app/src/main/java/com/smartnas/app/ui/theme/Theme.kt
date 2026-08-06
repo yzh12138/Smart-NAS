@@ -62,4 +62,6 @@ fun SmartNASTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-     
+        content = content
+    )
+}

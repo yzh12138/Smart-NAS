@@ -23,24 +23,26 @@ struct LoginRequest: Codable {
 
 struct LoginResponse: Codable {
     let token: String
-    let user: UserInfo?
+    let userId: Int?
+    let username: String?
+    let nickname: String?
 }
 
 struct UserInfo: Codable, Identifiable {
-    let id: Int
+    let userId: Int
     let username: String
     let nickname: String
     let avatar: String?
-    let status: Int
-    let roles: [String]
+    let familyRole: String?
 
-    init(id: Int = 0, username: String = "", nickname: String = "", avatar: String? = nil, status: Int = 1, roles: [String] = []) {
-        self.id = id
+    var id: Int { userId }
+
+    init(userId: Int = 0, username: String = "", nickname: String = "", avatar: String? = nil, familyRole: String? = nil) {
+        self.userId = userId
         self.username = username
         self.nickname = nickname
         self.avatar = avatar
-        self.status = status
-        self.roles = roles
+        self.familyRole = familyRole
     }
 }
 
@@ -157,12 +159,15 @@ struct Book: Codable, Identifiable {
 // MARK: - Family
 struct Family: Codable, Identifiable {
     let id: Int
-    let name: String
-    let inviteCode: String
+    let familyName: String
+    let familyCode: String
     let ownerId: Int
-    let ownerName: String
-    let memberCount: Int
+    let description: String?
+    let status: Int
     let createTime: String
+
+    var name: String { familyName }
+    var inviteCode: String { familyCode }
 }
 
 struct FamilyMember: Codable, Identifiable {
@@ -210,4 +215,8 @@ struct FaceCluster: Codable, Identifiable {
 func formatFileSize(_ bytes: Int64) -> String {
     switch bytes {
     case ..<1024: return "\(bytes) B"
-    case ..<1024*1024: return
+    case ..<1024*1024: return String(format: "%.1f KB", Double(bytes) / 1024.0)
+    case ..<1024*1024*1024: return String(format: "%.1f MB", Double(bytes) / (1024.0 * 1024.0))
+    default: return String(format: "%.2f GB", Double(bytes) / (1024.0 * 1024.0 * 1024.0))
+    }
+}

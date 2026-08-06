@@ -3,15 +3,13 @@ package com.smartnas.app.di
 import android.content.Context
 import com.smartnas.app.data.api.RetrofitHolder
 import com.smartnas.app.data.api.SmartNASApi
+import com.smartnas.app.util.BaseUrlHolder
 import com.smartnas.app.util.TokenManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import okhttp3.Cache
 import java.io.File
 import javax.inject.Singleton
@@ -35,12 +33,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRetrofitHolder(tokenManager: TokenManager, cache: Cache): RetrofitHolder {
-        return RetrofitHolder(tokenManager, cache)
+    fun provideBaseUrlHolder(): BaseUrlHolder {
+        return BaseUrlHolder()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofitHolder(tokenManager: TokenManager, cache: Cache, baseUrlHolder: BaseUrlHolder): RetrofitHolder {
+        return RetrofitHolder(tokenManager, cache, baseUrlHolder)
     }
 
     @Provides
     @Singleton
     fun provideSmartNASApi(retrofitHolder: RetrofitHolder): SmartNASApi {
-        return runBlocking {
-            retrofitHolder.a
+        return SmartNASApiDelegate(retrofitHolder)
+    }
+}

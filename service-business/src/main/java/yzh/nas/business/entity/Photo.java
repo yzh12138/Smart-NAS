@@ -34,4 +34,6 @@ public class Photo {
     private String description;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+    @TableField(exist = false)
+    private Long sharedBy;
 }
